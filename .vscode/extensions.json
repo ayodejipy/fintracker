@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-typescript-next",
+    "editorconfig.editorconfig",
+    "antfu.iconify",
+    "antfu.unocss",
+    "ms-playwright.playwright"
+  ]
+}

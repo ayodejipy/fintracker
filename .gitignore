@@ -1,0 +1,50 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+
+# Misc
+.DS_Store
+.fleet
+.idea
+
+# Local env files
+.env
+.env.*
+!.env.example
+debug-dashboard-data.mjs
+debug-auth.mjs
+create-test-users.mjs
+DASHBOARD_ENHANCEMENTS.md
+RECURRING_ENHANCEMENTS.md
+RECURRING_EXPENSES_FEATURE.md
+REGISTRATION_REDIRECT_FIX.md
+simple-performance-test.mjs
+STATUS_FILTER_FIX.md
+test-dashboard-enhancements.mjs
+test-dashboard-flow.mjs
+test-loans-fixes.mjs
+test-loans-modals.mjs
+test-login.mjs
+test-performance.js
+test-recurring-enhancements.mjs
+test-recurring-expenses-fixes.mjs
+test-savings-fixes.mjs
+test-status-filter.mjs
+test-recurring-expenses.mjs
+test-transactions-fixes.mjs
+test-user-login-and-recurring.mjs
+TEST-USERS.md
+TESTING_READY.md
+app/features/README.md
+app/components/README.md

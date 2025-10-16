@@ -1,0 +1,246 @@
+@import "tailwindcss";
+@import '@nuxt/ui';
+
+/* Custom styles for Nigerian Naira currency */
+.currency-ngn::before {
+    content: "₦";
+}
+
+/* Custom styles for financial dashboard */
+@layer components {
+    .card {
+        @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+    }
+
+    .card-header {
+        @apply text-lg font-semibold text-gray-900 mb-4;
+    }
+
+    .btn-primary {
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors;
+    }
+
+    .btn-secondary {
+        @apply bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-2 px-4 rounded-md transition-colors;
+    }
+
+    .input-field {
+        @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    }
+
+    .text-success {
+        @apply text-green-600;
+    }
+
+    .text-warning {
+        @apply text-yellow-600;
+    }
+
+    .text-error {
+        @apply text-red-600;
+    }
+
+    .bg-success {
+        @apply bg-green-100 text-green-800;
+    }
+
+    .bg-warning {
+        @apply bg-yellow-100 text-yellow-800;
+    }
+
+    .bg-error {
+        @apply bg-red-100 text-red-800;
+    }
+}
+/* Theme and accessibility styles */
+@layer base {
+    /* Dark mode improvements */
+    .dark {
+        color-scheme: dark;
+    }
+
+    /* Compact mode styles */
+    .compact {
+        --spacing-scale: 0.75;
+    }
+
+    .compact .p-6 {
+        @apply p-4;
+    }
+
+    .compact .p-4 {
+        @apply p-3;
+    }
+
+    .compact .gap-6 {
+        @apply gap-4;
+    }
+
+    .compact .gap-4 {
+        @apply gap-3;
+    }
+
+    .compact .text-lg {
+        @apply text-base;
+    }
+
+    .compact .text-xl {
+        @apply text-lg;
+    }
+
+    .compact .h-16 {
+        @apply h-12;
+    }
+
+    .compact .w-12 {
+        @apply w-10;
+    }
+
+    .compact .h-12 {
+        @apply h-10;
+    }
+
+    /* Reduced motion styles */
+    .reduce-motion * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .reduce-motion *:before,
+    .reduce-motion *:after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Smooth theme transitions */
+@layer components {
+    .theme-transition {
+        @apply transition-colors duration-200 ease-in-out;
+    }
+
+    /* Enhanced card styles with dark mode */
+    .settings-card {
+        @apply bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 transition-colors;
+    }
+
+    .settings-card-header {
+        @apply flex items-center gap-3 mb-6;
+    }
+
+    .settings-card-icon {
+        @apply w-10 h-10 rounded-xl flex items-center justify-center shadow-lg;
+    }
+
+    .settings-card-title {
+        @apply text-lg font-semibold text-gray-900 dark:text-white;
+    }
+
+    .settings-card-description {
+        @apply text-sm text-gray-500 dark:text-gray-400;
+    }
+
+    /* Enhanced form styles */
+    .settings-form-group {
+        @apply space-y-4;
+    }
+
+    .settings-toggle-item {
+        @apply flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl;
+    }
+
+    .settings-toggle-content {
+        @apply flex items-center gap-4;
+    }
+
+    .settings-toggle-icon {
+        @apply w-10 h-10 rounded-lg flex items-center justify-center;
+    }
+
+    .settings-toggle-label {
+        @apply text-sm font-medium text-gray-900 dark:text-white cursor-pointer;
+    }
+
+    .settings-toggle-description {
+        @apply text-sm text-gray-500 dark:text-gray-400;
+    }
+
+    /* Preview styles */
+    .settings-preview {
+        @apply p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl;
+    }
+
+    .settings-preview-item {
+        @apply flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600;
+    }
+
+    /* Alert styles */
+    .settings-alert {
+        @apply p-4 rounded-xl border;
+    }
+
+    .settings-alert-info {
+        @apply bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800;
+    }
+
+    .settings-alert-warning {
+        @apply bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800;
+    }
+
+    .settings-alert-danger {
+        @apply bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800;
+    }
+
+    .settings-alert-success {
+        @apply bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800;
+    }
+}
+
+/* Animation improvements */
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.3s ease-out;
+    }
+
+    .animate-scale-in {
+        animation: scaleIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(10px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+}
