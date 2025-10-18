@@ -9,6 +9,8 @@ export enum ExpenseCategory {
   SAVINGS = 'savings',
 }
 
+export type TransactionType = 'income' | 'expense'
+
 export interface Transaction {
   id: string
   userId: string
@@ -16,7 +18,7 @@ export interface Transaction {
   category: ExpenseCategory
   description: string
   date: Date
-  type: 'income' | 'expense'
+  type: TransactionType
   createdAt: Date
 }
 
@@ -25,7 +27,7 @@ export interface CreateTransactionInput {
   category: ExpenseCategory
   description: string
   date: Date
-  type: 'income' | 'expense'
+  type: TransactionType
 }
 
 export interface UpdateTransactionInput {
@@ -33,4 +35,12 @@ export interface UpdateTransactionInput {
   category?: ExpenseCategory
   description?: string
   date?: Date
+}
+
+export interface TransactionFilterDropdownOption {
+  label: string
+  value: string
+  color: string
+  icon: undefined
+  isSystem: boolean
 }

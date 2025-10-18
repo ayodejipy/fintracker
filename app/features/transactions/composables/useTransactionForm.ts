@@ -21,6 +21,15 @@ export function useTransactionForm() {
           description: data.description,
           date: data.date,
           type: data.type,
+          // Fee breakdown fields
+          vat: data.vat,
+          serviceFee: data.serviceFee,
+          commission: data.commission,
+          stampDuty: data.stampDuty,
+          transferFee: data.transferFee,
+          processingFee: data.processingFee,
+          otherFees: data.otherFees,
+          feeNote: data.feeNote,
         }
         result = await updateTransaction(transactionId, updateData)
       }

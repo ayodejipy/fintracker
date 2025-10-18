@@ -10,13 +10,15 @@ export function useCustomCategories() {
 
   /**
    * Fetch all custom categories
+   * @param type - Optional filter by type (income, expense, fee)
    */
-  async function fetchCategories() {
+  async function fetchCategories(type?: 'income' | 'expense' | 'fee') {
     loading.value = true
     error.value = null
 
     try {
-      const response = await $fetch<{ success: boolean, data: CustomCategory[] }>('/api/categories')
+      const queryParams = type ? `?type=${type}` : ''
+      const response = await $fetch<{ success: boolean, data: CustomCategory[] }>(`/api/categories${queryParams}`)
 
       if (response.success) {
         categories.value = response.data
@@ -129,21 +131,36 @@ export function useCustomCategories() {
   /**
    * Get categories by type
    */
-  function getCategoriesByType(type: 'income' | 'expense'): CustomCategory[] {
+  function getCategoriesByType(type: 'income' | 'expense' | 'fee'): CustomCategory[] {
     return categories.value.filter(c => c.type === type)
+  }
+
+  /**
+   * Get system categories (non-editable defaults)
+   */
+  function getSystemCategories(): CustomCategory[] {
+    return categories.value.filter(c => c.isSystem)
+  }
+
+  /**
+   * Get user custom categories (user-created)
+   */
+  function getUserCategories(): CustomCategory[] {
+    return categories.value.filter(c => !c.isSystem)
   }
 
   /**
    * Get all category names for a type (for display in selects)
    */
-  function getCategoryOptions(type: 'income' | 'expense') {
+  function getCategoryOptions(type: 'income' | 'expense' | 'fee') {
     const customCategories = getCategoriesByType(type)
 
     return customCategories.map(c => ({
       label: c.icon ? `${c.icon} ${c.name}` : c.name,
-      value: c.name,
+      value: c.name.replace(/[&,/\s]+/g, '_').toLowerCase(),
       icon: c.icon,
       color: c.color,
+      isSystem: c.isSystem,
     }))
   }
 
@@ -156,6 +173,8 @@ export function useCustomCategories() {
     updateCategory,
     deleteCategory,
     getCategoriesByType,
+    getSystemCategories,
+    getUserCategories,
     getCategoryOptions,
   }
 }
