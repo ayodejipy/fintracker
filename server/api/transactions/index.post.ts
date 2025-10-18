@@ -57,29 +57,59 @@ export default defineEventHandler(asyncHandler(async (event) => {
       recurringExpenseId = recurringExpense.id
     }
 
+    // Calculate total (amount + all fees)
+    const vat = validatedData.vat || 0
+    const serviceFee = validatedData.serviceFee || 0
+    const commission = validatedData.commission || 0
+    const stampDuty = validatedData.stampDuty || 0
+    const transferFee = validatedData.transferFee || 0
+    const processingFee = validatedData.processingFee || 0
+    const otherFees = validatedData.otherFees || 0
+
+    const totalFees = vat + serviceFee + commission + stampDuty + transferFee + processingFee + otherFees
+    const total = totalFees > 0 ? validatedData.amount + totalFees : null
+
     // Create transaction
     const transaction = await db.transaction.create({
       data: {
         userId: user.id,
         amount: validatedData.amount,
-        vat: validatedData.vat || null,
         category: validatedData.category,
         description: validatedData.description,
         date: validatedData.date,
         type: validatedData.type,
         isRecurring: validatedData.isRecurring || false,
         recurringExpenseId,
+        // Fee breakdown fields
+        vat: validatedData.vat || null,
+        serviceFee: validatedData.serviceFee || null,
+        commission: validatedData.commission || null,
+        stampDuty: validatedData.stampDuty || null,
+        transferFee: validatedData.transferFee || null,
+        processingFee: validatedData.processingFee || null,
+        otherFees: validatedData.otherFees || null,
+        feeNote: validatedData.feeNote || null,
+        total, // Auto-calculated total
       },
       select: {
         id: true,
         amount: true,
-        vat: true,
         category: true,
         description: true,
         date: true,
         type: true,
         isRecurring: true,
         recurringExpenseId: true,
+        // Fee fields
+        vat: true,
+        serviceFee: true,
+        commission: true,
+        stampDuty: true,
+        transferFee: true,
+        processingFee: true,
+        otherFees: true,
+        feeNote: true,
+        total: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -89,13 +119,22 @@ export default defineEventHandler(asyncHandler(async (event) => {
     const transformedTransaction: Omit<Transaction, 'userId'> = {
       id: transaction.id,
       amount: Number(transaction.amount),
-      vat: transaction.vat ? Number(transaction.vat) : undefined,
       category: transaction.category as any,
       description: transaction.description,
       date: transaction.date,
       type: transaction.type as 'income' | 'expense',
       isRecurring: transaction.isRecurring,
       recurringExpenseId: transaction.recurringExpenseId || undefined,
+      // Fee fields
+      vat: transaction.vat ? Number(transaction.vat) : undefined,
+      serviceFee: transaction.serviceFee ? Number(transaction.serviceFee) : undefined,
+      commission: transaction.commission ? Number(transaction.commission) : undefined,
+      stampDuty: transaction.stampDuty ? Number(transaction.stampDuty) : undefined,
+      transferFee: transaction.transferFee ? Number(transaction.transferFee) : undefined,
+      processingFee: transaction.processingFee ? Number(transaction.processingFee) : undefined,
+      otherFees: transaction.otherFees ? Number(transaction.otherFees) : undefined,
+      feeNote: transaction.feeNote || undefined,
+      total: transaction.total ? Number(transaction.total) : undefined,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
     }

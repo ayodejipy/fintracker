@@ -12,6 +12,18 @@ const expenseCategoryEnum = z.enum([
   'savings',
 ])
 
+// Fee fields schema (all optional)
+export const feeFieldsSchema = z.object({
+  vat: z.number().nonnegative('VAT must be non-negative').optional(),
+  serviceFee: z.number().nonnegative('Service fee must be non-negative').optional(),
+  commission: z.number().nonnegative('Commission must be non-negative').optional(),
+  stampDuty: z.number().nonnegative('Stamp duty must be non-negative').optional(),
+  transferFee: z.number().nonnegative('Transfer fee must be non-negative').optional(),
+  processingFee: z.number().nonnegative('Processing fee must be non-negative').optional(),
+  otherFees: z.number().nonnegative('Other fees must be non-negative').optional(),
+  feeNote: z.string().max(500, 'Fee note must be less than 500 characters').optional(),
+}).optional()
+
 // Base transaction schema
 export const transactionSchema = z.object({
   type: z.enum(['income', 'expense'], {
@@ -27,6 +39,15 @@ export const transactionSchema = z.object({
   date: z.date({
     required_error: 'Date is required',
   }),
+  // Fee breakdown fields (optional)
+  vat: z.number().nonnegative().optional(),
+  serviceFee: z.number().nonnegative().optional(),
+  commission: z.number().nonnegative().optional(),
+  stampDuty: z.number().nonnegative().optional(),
+  transferFee: z.number().nonnegative().optional(),
+  processingFee: z.number().nonnegative().optional(),
+  otherFees: z.number().nonnegative().optional(),
+  feeNote: z.string().max(500).optional(),
 })
 
 // Create transaction schema (for new transactions)
@@ -62,6 +83,15 @@ export const transactionFormSchema = z.object({
   date: z.string({
     required_error: 'Date is required',
   }).min(1, 'Date is required'),
+  // Fee breakdown fields (optional)
+  vat: z.number().nonnegative().optional(),
+  serviceFee: z.number().nonnegative().optional(),
+  commission: z.number().nonnegative().optional(),
+  stampDuty: z.number().nonnegative().optional(),
+  transferFee: z.number().nonnegative().optional(),
+  processingFee: z.number().nonnegative().optional(),
+  otherFees: z.number().nonnegative().optional(),
+  feeNote: z.string().max(500).optional(),
 })
 
 // Type exports
