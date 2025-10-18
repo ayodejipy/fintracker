@@ -19,7 +19,7 @@ const FETCH_COOLDOWN = 5000 // 5 seconds cooldown between fetches
 
 // Fetch notifications on mount
 onMounted(() => {
-  fetchNotifications({ limit: maxDisplayNotifications }).catch(error => {
+  fetchNotifications({ limit: maxDisplayNotifications }).catch((error) => {
     console.error('Failed to fetch notifications on mount:', error)
   })
 })
@@ -32,7 +32,7 @@ function openModal() {
   const now = Date.now()
   if (now - lastFetchTime.value > FETCH_COOLDOWN) {
     lastFetchTime.value = now
-    fetchNotifications({ limit: maxDisplayNotifications }).catch(error => {
+    fetchNotifications({ limit: maxDisplayNotifications }).catch((error) => {
       console.error('Failed to fetch notifications:', error)
       // Don't rethrow to prevent error handler loops
     })

@@ -6,6 +6,10 @@ definePageMeta({
   middleware: 'auth',
   layout: 'dashboard',
 })
+
+useHead({
+  title: 'Recurring Expenses - Personal Finance Tracker',
+})
 </script>
 
 <template>

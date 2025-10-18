@@ -55,7 +55,7 @@ const iconClasses = computed(() => {
 
 <template>
   <div
-    class="border-l-4 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+    class="border-l-4 p-4 cursor-pointer hover:bg-gray-50 dark:bg-gray-700/50 transition-colors"
     :class="priorityClasses"
     @click="handleClick"
   >
@@ -73,10 +73,10 @@ const iconClasses = computed(() => {
       <div class="flex-1 min-w-0">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <h4 class="text-sm font-medium text-gray-900" :class="{ 'font-bold': !notification.isRead }">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-200" :class="{ 'font-bold': !notification.isRead }">
               {{ notification.title }}
             </h4>
-            <p class="text-sm text-gray-600 mt-1">
+            <p class="text-sm text-gray-600 dark:text-gray-200 mt-1">
               {{ notification.message }}
             </p>
           </div>
@@ -89,7 +89,7 @@ const iconClasses = computed(() => {
 
         <!-- Footer -->
         <div class="flex items-center justify-between mt-3">
-          <span class="text-xs text-gray-500">
+          <span class="text-xs text-gray-500 dark:text-gray-200">
             {{ formatNotificationTime(notification.createdAt) }}
           </span>
 

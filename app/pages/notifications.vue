@@ -10,6 +10,10 @@ definePageMeta({
   layout: 'dashboard',
 })
 
+useHead({
+  title: 'Notifications - Personal Finance Tracker',
+})
+
 const {
   notifications,
   unreadCount,
