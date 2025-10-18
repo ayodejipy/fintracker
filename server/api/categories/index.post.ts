@@ -13,6 +13,13 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
     const session = await getUserSession(event)
     const userId = session?.user.id
 
+    if (!userId) {
+      throw createError({
+        statusCode: 401,
+        message: 'Authentication required',
+      })
+    }
+
     // Get request body
     const body = await readBody<CreateCustomCategoryInput>(event)
 
@@ -24,15 +31,15 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
       })
     }
 
-    if (!['income', 'expense'].includes(body.type)) {
+    if (!['income', 'expense', 'fee'].includes(body.type)) {
       throw createError({
         statusCode: 400,
-        message: 'Type must be either "income" or "expense"',
+        message: 'Type must be either "income", "expense", or "fee"',
       })
     }
 
-    // Check if category with same name and type already exists
-    const existing = await prisma.customCategory.findFirst({
+    // Check if category with same name and type already exists for this user
+    const existing = await prisma.category.findFirst({
       where: {
         userId,
         name: body.name,
@@ -48,7 +55,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
     }
 
     // Create the category
-    const category = await prisma.customCategory.create({
+    const category = await prisma.category.create({
       data: {
         userId,
         name: body.name,
@@ -56,6 +63,9 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
         icon: body.icon,
         color: body.color,
         description: body.description,
+        sortOrder: body.sortOrder ?? 999,
+        isSystem: false, // User-created categories are not system categories
+        isActive: true,
       },
     })
 
@@ -63,11 +73,13 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
       id: category.id,
       userId: category.userId,
       name: category.name,
-      type: category.type as 'income' | 'expense',
+      type: category.type as 'income' | 'expense' | 'fee',
       icon: category.icon || undefined,
       color: category.color || undefined,
       description: category.description || undefined,
+      isSystem: category.isSystem,
       isActive: category.isActive,
+      sortOrder: category.sortOrder,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt,
     }

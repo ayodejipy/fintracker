@@ -13,7 +13,7 @@ export interface User {
 export interface Transaction {
   id: string
   userId: string
-  amount: number
+  amount: number // Main transaction amount (before fees)
   category: ExpenseCategory | string // Can be ExpenseCategory or custom category name
   description: string
   date: Date
@@ -21,8 +21,16 @@ export interface Transaction {
   isRecurring: boolean
   recurringExpenseId?: string
 
-  // VAT tracking
-  vat?: number
+  // Fee breakdown fields for transparency
+  vat?: number             // VAT/Tax amount (e.g., 7.5% in Nigeria)
+  serviceFee?: number      // Restaurant/hotel service charges
+  commission?: number      // Bank/payment processor commissions
+  stampDuty?: number       // Nigerian stamp duty on transfers (₦50 for >₦10,000)
+  transferFee?: number     // Inter-bank transfer fees
+  processingFee?: number   // Payment processing charges
+  otherFees?: number       // Any other miscellaneous fees
+  feeNote?: string         // Optional note about fees
+  total?: number           // Total amount (amount + all fees) - what was actually debited/credited
 
   // Import and review workflow fields
   isImported?: boolean
@@ -78,13 +86,15 @@ export interface SavingsGoal {
 
 export interface CustomCategory {
   id: string
-  userId: string
+  userId: string | null  // null = system category
   name: string
-  type: 'income' | 'expense'
+  type: 'income' | 'expense' | 'fee'
   icon?: string
   color?: string
   description?: string
+  isSystem: boolean  // true = default/system category
   isActive: boolean
+  sortOrder: number
   createdAt: Date
   updatedAt: Date
 }
@@ -216,7 +226,16 @@ export interface CreateTransactionInput {
   description: string
   date: Date | string
   type: 'income' | 'expense'
+  // Fee fields
   vat?: number
+  serviceFee?: number
+  commission?: number
+  stampDuty?: number
+  transferFee?: number
+  processingFee?: number
+  otherFees?: number
+  feeNote?: string
+  total?: number // Auto-calculated if not provided
 }
 
 export interface UpdateTransactionInput {
@@ -225,7 +244,16 @@ export interface UpdateTransactionInput {
   description?: string
   date?: Date | string
   type?: 'income' | 'expense'
+  // Fee fields
   vat?: number
+  serviceFee?: number
+  commission?: number
+  stampDuty?: number
+  transferFee?: number
+  processingFee?: number
+  otherFees?: number
+  feeNote?: string
+  total?: number // Auto-calculated if not provided
 }
 
 export interface CreateLoanInput {
@@ -251,10 +279,11 @@ export interface CreateSavingsGoalInput {
 
 export interface CreateCustomCategoryInput {
   name: string
-  type: 'income' | 'expense'
+  type: 'income' | 'expense' | 'fee'
   icon?: string
   color?: string
   description?: string
+  sortOrder?: number
 }
 
 export interface UpdateCustomCategoryInput {
@@ -380,6 +409,20 @@ export interface ApiErrorResponse {
 export type Nullable<T> = T | null
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>
+
+// Fee calculation helper type
+export interface TransactionFeeBreakdown {
+  baseAmount: number           // Amount before fees
+  vat: number
+  serviceFee: number
+  commission: number
+  stampDuty: number
+  transferFee: number
+  processingFee: number
+  otherFees: number
+  totalFees: number            // Sum of all fees
+  totalAmount: number          // Base + all fees (should equal transaction.amount)
+}
 
 // Date utility types
 export type DateString = string // ISO date string
@@ -546,7 +589,7 @@ export interface RecurringExpenseSummary {
 export interface ParsedTransaction {
   date: string
   description: string
-  amount: number
+  amount: number // Main transaction amount (before fees)
   type: 'debit' | 'credit'
   balance?: number
   category?: ExpenseCategory
@@ -554,6 +597,17 @@ export interface ParsedTransaction {
   needsReview?: boolean
   flags?: TransactionFlag[]
   originalDesc?: string
+  // Fee breakdown fields (extracted from statements)
+  vat?: number
+  serviceFee?: number
+  commission?: number
+  stampDuty?: number
+  transferFee?: number
+  processingFee?: number
+  otherFees?: number
+  feeNote?: string
+  // Total amount (amount + all fees) - what was actually debited/credited
+  total?: number
 }
 
 export type TransactionFlag =
@@ -594,6 +648,16 @@ export interface BulkImportRequest {
     type: 'income' | 'expense'
     category: ExpenseCategory
     userNote?: string
+    // Fee fields
+    vat?: number
+    serviceFee?: number
+    commission?: number
+    stampDuty?: number
+    transferFee?: number
+    processingFee?: number
+    otherFees?: number
+    feeNote?: string
+    total?: number
   }>
   importSource: string
 }

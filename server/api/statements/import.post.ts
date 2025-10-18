@@ -14,6 +14,13 @@ export default defineEventHandler(async (event) => {
     const session = await getUserSession(event)
     const userId = session?.user.id
 
+    if (!userId) {
+      throw createError({
+        statusCode: 401,
+        message: 'Unauthorized',
+      })
+    }
+
     // Read request body
     const body = await readBody<BulkImportRequest>(event)
 
@@ -94,6 +101,16 @@ export default defineEventHandler(async (event) => {
             needsReview: false,
             reviewedAt: new Date(),
             userNote: transaction.userNote,
+            // Fee fields
+            vat: transaction.vat,
+            serviceFee: transaction.serviceFee,
+            commission: transaction.commission,
+            stampDuty: transaction.stampDuty,
+            transferFee: transaction.transferFee,
+            processingFee: transaction.processingFee,
+            otherFees: transaction.otherFees,
+            feeNote: transaction.feeNote,
+            total: transaction.total,
           },
         })
 

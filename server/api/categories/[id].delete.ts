@@ -23,7 +23,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, mes
     }
 
     // Check if category exists and belongs to user
-    const existing = await prisma.customCategory.findUnique({
+    const existing = await prisma.category.findUnique({
       where: { id },
     })
 
@@ -31,6 +31,14 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, mes
       throw createError({
         statusCode: 404,
         message: 'Category not found',
+      })
+    }
+
+    // Prevent deleting system categories
+    if (existing.isSystem) {
+      throw createError({
+        statusCode: 403,
+        message: 'System categories cannot be deleted',
       })
     }
 
@@ -42,7 +50,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, mes
     }
 
     // Soft delete the category
-    await prisma.customCategory.update({
+    await prisma.category.update({
       where: { id },
       data: { isActive: false },
     })

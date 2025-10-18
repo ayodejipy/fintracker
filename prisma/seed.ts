@@ -1,10 +1,311 @@
 import { PrismaClient } from '@prisma/client'
-import { hashPassword } from '../app/utils/auth'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
+}
+
+async function seedDefaultCategories() {
+  console.log('📁 Seeding default categories...')
+
+  // Default Expense Categories (Nigerian context)
+  const expenseCategories = [
+    {
+      name: 'Food & Groceries',
+      type: 'expense',
+      icon: '🍽️',
+      color: '#10B981',
+      description: 'Food, groceries, restaurants, and dining',
+      sortOrder: 1,
+    },
+    {
+      name: 'Transportation',
+      type: 'expense',
+      icon: '🚗',
+      color: '#3B82F6',
+      description: 'Fuel, public transport, ride-hailing, vehicle maintenance',
+      sortOrder: 2,
+    },
+    {
+      name: 'Housing',
+      type: 'expense',
+      icon: '🏠',
+      color: '#8B5CF6',
+      description: 'Rent, mortgage, home maintenance, repairs',
+      sortOrder: 3,
+    },
+    {
+      name: 'Utilities',
+      type: 'expense',
+      icon: '⚡',
+      color: '#F59E0B',
+      description: 'Electricity, water, gas, waste disposal',
+      sortOrder: 4,
+    },
+    {
+      name: 'Communication',
+      type: 'expense',
+      icon: '📱',
+      color: '#EC4899',
+      description: 'Phone bills, data, airtime, internet',
+      sortOrder: 5,
+    },
+    {
+      name: 'Healthcare',
+      type: 'expense',
+      icon: '🏥',
+      color: '#EF4444',
+      description: 'Medical expenses, medications, insurance',
+      sortOrder: 6,
+    },
+    {
+      name: 'Education',
+      type: 'expense',
+      icon: '📚',
+      color: '#6366F1',
+      description: 'School fees, courses, books, learning materials',
+      sortOrder: 7,
+    },
+    {
+      name: 'Entertainment',
+      type: 'expense',
+      icon: '🎬',
+      color: '#F97316',
+      description: 'Movies, games, hobbies, streaming services',
+      sortOrder: 8,
+    },
+    {
+      name: 'Shopping',
+      type: 'expense',
+      icon: '🛍️',
+      color: '#EC4899',
+      description: 'Clothing, electronics, personal items',
+      sortOrder: 9,
+    },
+    {
+      name: 'Family Support',
+      type: 'expense',
+      icon: '👨‍👩‍👧‍👦',
+      color: '#10B981',
+      description: 'Support for family members, dependents',
+      sortOrder: 10,
+    },
+    {
+      name: 'Religious/Spiritual',
+      type: 'expense',
+      icon: '🙏',
+      color: '#8B5CF6',
+      description: 'Tithe, offerings, religious activities',
+      sortOrder: 11,
+    },
+    {
+      name: 'Business',
+      type: 'expense',
+      icon: '💼',
+      color: '#3B82F6',
+      description: 'Business expenses, investments, equipment',
+      sortOrder: 12,
+    },
+    {
+      name: 'Savings & Investment',
+      type: 'expense',
+      icon: '💰',
+      color: '#10B981',
+      description: 'Savings, investments, financial planning',
+      sortOrder: 13,
+    },
+    {
+      name: 'Debt Payments',
+      type: 'expense',
+      icon: '💳',
+      color: '#EF4444',
+      description: 'Loan repayments, credit card payments',
+      sortOrder: 14,
+    },
+    {
+      name: 'Miscellaneous',
+      type: 'expense',
+      icon: '📦',
+      color: '#6B7280',
+      description: 'Other expenses not categorized elsewhere',
+      sortOrder: 15,
+    },
+  ]
+
+  // Default Income Categories
+  const incomeCategories = [
+    {
+      name: 'Salary',
+      type: 'income',
+      icon: '💼',
+      color: '#10B981',
+      description: 'Monthly salary and wages',
+      sortOrder: 1,
+    },
+    {
+      name: 'Freelance',
+      type: 'income',
+      icon: '💻',
+      color: '#3B82F6',
+      description: 'Freelance work and consulting',
+      sortOrder: 2,
+    },
+    {
+      name: 'Business Income',
+      type: 'income',
+      icon: '🏢',
+      color: '#8B5CF6',
+      description: 'Business revenue and profits',
+      sortOrder: 3,
+    },
+    {
+      name: 'Investment Returns',
+      type: 'income',
+      icon: '📈',
+      color: '#F59E0B',
+      description: 'Dividends, interest, capital gains',
+      sortOrder: 4,
+    },
+    {
+      name: 'Rental Income',
+      type: 'income',
+      icon: '🏠',
+      color: '#EC4899',
+      description: 'Property rental income',
+      sortOrder: 5,
+    },
+    {
+      name: 'Gift/Bonus',
+      type: 'income',
+      icon: '🎁',
+      color: '#F97316',
+      description: 'Gifts, bonuses, awards',
+      sortOrder: 6,
+    },
+    {
+      name: 'Other Income',
+      type: 'income',
+      icon: '💰',
+      color: '#6366F1',
+      description: 'Other sources of income',
+      sortOrder: 7,
+    },
+  ]
+
+  // Default Fee Categories (for fee transparency)
+  const feeCategories = [
+    {
+      name: 'VAT',
+      type: 'fee',
+      icon: '📊',
+      color: '#EF4444',
+      description: 'Value Added Tax (typically 7.5% in Nigeria)',
+      sortOrder: 1,
+    },
+    {
+      name: 'Service Fee',
+      type: 'fee',
+      icon: '🔧',
+      color: '#F59E0B',
+      description: 'Restaurant and hotel service charges',
+      sortOrder: 2,
+    },
+    {
+      name: 'Commission',
+      type: 'fee',
+      icon: '💼',
+      color: '#3B82F6',
+      description: 'Bank and payment processor commissions',
+      sortOrder: 3,
+    },
+    {
+      name: 'Stamp Duty',
+      type: 'fee',
+      icon: '📜',
+      color: '#8B5CF6',
+      description: 'Nigerian stamp duty on transfers (₦50 for >₦10,000)',
+      sortOrder: 4,
+    },
+    {
+      name: 'Transfer Fee',
+      type: 'fee',
+      icon: '💸',
+      color: '#EC4899',
+      description: 'Inter-bank transfer fees',
+      sortOrder: 5,
+    },
+    {
+      name: 'Processing Fee',
+      type: 'fee',
+      icon: '⚙️',
+      color: '#6366F1',
+      description: 'Payment processing charges',
+      sortOrder: 6,
+    },
+    {
+      name: 'Other Fees',
+      type: 'fee',
+      icon: '📋',
+      color: '#6B7280',
+      description: 'Miscellaneous fees and charges',
+      sortOrder: 7,
+    },
+  ]
+
+  const allCategories = [...expenseCategories, ...incomeCategories, ...feeCategories]
+
+  // Create or update all categories
+  for (const category of allCategories) {
+    // Check if category exists
+    const existing = await prisma.category.findFirst({
+      where: {
+        userId: null,
+        name: category.name,
+        type: category.type,
+      },
+    })
+
+    if (existing) {
+      // Update existing category
+      await prisma.category.update({
+        where: { id: existing.id },
+        data: {
+          icon: category.icon,
+          color: category.color,
+          description: category.description,
+          sortOrder: category.sortOrder,
+        },
+      })
+    }
+    else {
+      // Create new category
+      await prisma.category.create({
+        data: {
+          userId: null, // System-wide default
+          name: category.name,
+          type: category.type,
+          icon: category.icon,
+          color: category.color,
+          description: category.description,
+          sortOrder: category.sortOrder,
+          isSystem: true,
+          isActive: true,
+        },
+      })
+    }
+  }
+
+  console.log(`✅ Seeded ${allCategories.length} default categories (${expenseCategories.length} expense, ${incomeCategories.length} income, ${feeCategories.length} fee)`)
+}
+
 async function main() {
   console.log('🌱 Starting database seed...')
+
+  // Seed default system categories
+  await seedDefaultCategories()
 
   // Test Users with different financial profiles
   const testUsers = [
@@ -96,14 +397,25 @@ async function main() {
     const budgets = generateBudgetsForProfile(user, currentMonth)
 
     for (const budget of budgets) {
-      await prisma.budget.create({
-        data: {
+      await prisma.budget.upsert({
+        where: {
+          userId_category_month: {
+            userId: user.id,
+            category: budget.category,
+            month: budget.month,
+          },
+        },
+        update: {
+          monthlyLimit: budget.monthlyLimit,
+          currentSpent: budget.currentSpent,
+        },
+        create: {
           ...budget,
           userId: user.id,
         },
       })
     }
-    console.log(`📊 Created ${budgets.length} budgets for ${user.name}`)
+    console.log(`📊 Created/Updated ${budgets.length} budgets for ${user.name}`)
   }
 
   // Create savings goals for each user

@@ -1,9 +1,11 @@
 import type { BankStatementParseResult } from '../../../app/types'
 import { readMultipartFormData } from 'h3'
+import { getCategoriesForLLMPrompt } from '../../utils/categoryMapper'
 import { parseBankStatementWithLLM } from '../../utils/llmParser'
 import { extractPDFText, PDFPasswordRequiredError, validateBankStatementPDF } from '../../utils/pdfParser'
-import { categorizeTransactions } from '../../utils/transactionCategorizer'
+import { categorizeTransactions } from '../../utils/transactionCategorizerNew'
 import { getValidationSummary, validateTransactions } from '../../utils/transactionValidator'
+import { cleanAndNormalizeBankStatement } from '../../utils/textCleaning'
 
 /**
  * Upload and parse bank statement PDF
@@ -84,11 +86,60 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Step 3: Parse transactions using LLM
+    // Step 3: Clean and normalize the text using SIMPLE approach
+    console.log('\n==================== TEXT CLEANING: START ====================')
+    console.log('[Text Cleaner] Starting simple text cleaning pipeline...')
+    console.log('[Text Cleaner] Raw text length:', pdfText.length, 'characters')
+
+    let cleaningResult
+
+    try {
+      cleaningResult = await cleanAndNormalizeBankStatement(pdfText, {
+        bankType: 'auto', // Auto-detect bank type
+        lookAheadRows: 3, // Look ahead 3 rows for fee grouping
+        preserveOriginal: true, // Keep original for debugging
+        verbose: true, // Enable detailed logging
+      })
+
+      console.log('[Text Cleaner] ✅ Cleaning completed successfully')
+      console.log('[Text Cleaner] Stats:', {
+        bankType: cleaningResult.bankType,
+        totalTransactions: cleaningResult.stats.totalTransactions,
+        transactionsWithFees: cleaningResult.stats.transactionsWithFees,
+        totalFees: cleaningResult.stats.totalFees,
+        processingTime: `${cleaningResult.stats.processingTimeMs}ms`,
+      })
+
+      console.log('\n[Text Cleaner] Cleaned text preview (first 800 chars):')
+      console.log('---')
+      console.log(cleaningResult.cleanedText.substring(0, 800))
+      console.log('---')
+      console.log('==================== TEXT CLEANING: END ====================\n')
+    }
+    catch (error) {
+      console.error('\n[Text Cleaner] ❌ Error during cleaning:', error)
+      console.warn('[Text Cleaner] Falling back to raw PDF text')
+      console.log('==================== TEXT CLEANING: FAILED ====================\n')
+      cleaningResult = null
+    }
+
+    // Step 4: Fetch categories for LLM
+    console.log('[Upload] Fetching categories from database...')
+    const categoriesPrompt = await getCategoriesForLLMPrompt()
+    console.log('[Upload] Categories loaded for LLM')
+
+    // Step 5: Parse transactions using LLM
     let parseResult: BankStatementParseResult
 
     try {
-      const llmResult = await parseBankStatementWithLLM(pdfText)
+      // Use cleaned text if available, otherwise use raw text
+      const textToParse = cleaningResult?.cleanedText || pdfText
+
+      console.log('[Upload] Preparing to send to LLM...')
+      console.log('[Upload] Using', cleaningResult ? 'CLEANED' : 'RAW', 'text')
+      console.log('[Upload] Text length:', textToParse.length, 'characters')
+
+      const llmResult = await parseBankStatementWithLLM(textToParse, categoriesPrompt)
 
       parseResult = {
         bankName: llmResult.bankName,
@@ -119,13 +170,15 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Step 4: Categorize transactions
-    const categorized = categorizeTransactions(parseResult.transactions)
+    // Step 6: Categorize transactions
+    console.log('Categorizing transactions...')
+    const categorized = await categorizeTransactions(parseResult.transactions)
 
-    // Step 5: Validate and flag edge cases
+    // Step 7: Validate and flag edge cases
+    console.log('Validating transactions...')
     const validated = validateTransactions(categorized)
 
-    // Step 6: Get summary statistics
+    // Step 7: Get summary statistics
     const summary = getValidationSummary(validated)
 
     // Update parse result with processed data

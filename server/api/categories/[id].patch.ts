@@ -27,7 +27,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
     const body = await readBody<UpdateCustomCategoryInput>(event)
 
     // Check if category exists and belongs to user
-    const existing = await prisma.customCategory.findUnique({
+    const existing = await prisma.category.findUnique({
       where: { id },
     })
 
@@ -35,6 +35,14 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
       throw createError({
         statusCode: 404,
         message: 'Category not found',
+      })
+    }
+
+    // Prevent updating system categories
+    if (existing.isSystem) {
+      throw createError({
+        statusCode: 403,
+        message: 'System categories cannot be modified',
       })
     }
 
@@ -47,7 +55,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
 
     // If updating name, check for duplicates
     if (body.name && body.name !== existing.name) {
-      const duplicate = await prisma.customCategory.findFirst({
+      const duplicate = await prisma.category.findFirst({
         where: {
           userId,
           name: body.name,
@@ -65,7 +73,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
     }
 
     // Update the category
-    const category = await prisma.customCategory.update({
+    const category = await prisma.category.update({
       where: { id },
       data: {
         name: body.name,
@@ -80,11 +88,13 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
       id: category.id,
       userId: category.userId,
       name: category.name,
-      type: category.type as 'income' | 'expense',
+      type: category.type as 'income' | 'expense' | 'fee',
       icon: category.icon || undefined,
       color: category.color || undefined,
       description: category.description || undefined,
+      isSystem: category.isSystem,
       isActive: category.isActive,
+      sortOrder: category.sortOrder,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt,
     }

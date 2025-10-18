@@ -27,7 +27,7 @@ model User {
   notifications Notification[]
   notificationPreferences NotificationPreferences?
   recurringExpenses RecurringExpense[]
-  customCategories CustomCategory[]
+  categories   Category[]
 
   @@map("users")
 }
@@ -43,8 +43,16 @@ model Transaction {
   isRecurring Boolean  @default(false)
   recurringExpenseId String?
 
-  // VAT tracking
-  vat         Decimal? @db.Decimal(10, 2) // VAT amount included in the transaction
+  // Fee breakdown fields for transparency
+  vat             Decimal? @db.Decimal(10, 2) // VAT/Tax amount (e.g., 7.5% in Nigeria)
+  serviceFee      Decimal? @db.Decimal(10, 2) // Restaurant/hotel service charges
+  commission      Decimal? @db.Decimal(10, 2) // Bank/payment processor commissions
+  stampDuty       Decimal? @db.Decimal(10, 2) // Nigerian stamp duty on transfers (₦50 for >₦10,000)
+  transferFee     Decimal? @db.Decimal(10, 2) // Inter-bank transfer fees
+  processingFee   Decimal? @db.Decimal(10, 2) // Payment processing charges
+  otherFees       Decimal? @db.Decimal(10, 2) // Any other miscellaneous fees
+  feeNote         String?  // Optional note about fees
+  total           Decimal? @db.Decimal(10, 2) // Total amount (amount + all fees) - what was actually debited/credited
 
   // Import and review workflow fields
   isImported       Boolean  @default(false)  // Whether this was imported from PDF
@@ -195,22 +203,26 @@ model RecurringExpense {
   @@map("recurring_expenses")
 }
 
-model CustomCategory {
+model Category {
   id          String   @id @default(cuid())
-  userId      String
-  name        String   // Category name (e.g., "Entertainment", "Medical")
-  type        String   // 'income' or 'expense'
+  userId      String?  // null = system-wide default category, non-null = user-specific custom category
+  name        String   // Category name (e.g., "Entertainment", "Medical", "food", "rent")
+  type        String   // 'income', 'expense', or 'fee'
+  isSystem    Boolean  @default(false) // true = default/system category, false = user-created
+  isActive    Boolean  @default(true)  // Can be disabled by user
   icon        String?  // Optional icon identifier
   color       String?  // Optional color for UI
   description String?  // Optional description
-  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(999) // For ordering categories in UI
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, name, type]) // User can't have duplicate category names per type
+  @@unique([userId, name, type]) // Unique per user and type (system categories have userId = null)
   @@index([userId])
+  @@index([type])
+  @@index([isSystem])
   @@index([isActive])
-  @@map("custom_categories")
+  @@map("categories")
 }
