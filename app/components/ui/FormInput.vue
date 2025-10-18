@@ -80,14 +80,11 @@ const inputColor = computed(() => {
       :color="inputColor"
       variant="outline"
       :ui="{
-        base: 'relative block w-full disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none border-0 shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset transition-all duration-200 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 text-base px-4 py-3',
+        base: [error
+          ? 'ring-red-300 dark:ring-red-600 focus-within:ring-2 focus-within:ring-red-500 dark:focus-within:ring-red-400'
+          : 'ring-gray-300 dark:ring-gray-600 hover:ring-gray-400 dark:hover:ring-gray-500 focus-within:ring-2 focus-within:ring-green-500 dark:focus-within:ring-green-400', 'relative block w-full disabled:cursor-not-allowed disabled:opacity-75 focus:outline-none border-0 shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white ring-1 ring-inset transition-all duration-200 rounded-lg placeholder-gray-400 dark:placeholder-gray-500 text-base px-4 py-3'],
       }"
       class="w-full"
-      :class="[
-        error
-          ? 'ring-red-300 dark:ring-red-600 focus-within:ring-2 focus-within:ring-red-500 dark:focus-within:ring-red-400'
-          : 'ring-gray-300 dark:ring-gray-600 hover:ring-gray-400 dark:hover:ring-gray-500 focus-within:ring-2 focus-within:ring-green-500 dark:focus-within:ring-green-400'
-      ]"
       @blur="emit('blur')"
       @focus="emit('focus')"
     >

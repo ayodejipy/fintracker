@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { getCategoryOptions } from '~/utils/categories'
+import { useCustomCategories } from '~/composables/useCustomCategories'
+
+interface Options {
+  label: string
+  value: string
+  color: string
+  icon: undefined
+  isSystem: boolean
+}
 
 interface FilterValues {
   search: string
-  category: string | null
-  type: string | null
+  category: Options
+  type: Options
   month: string
 }
 
@@ -18,6 +26,9 @@ const emit = defineEmits<{
   'update:modelValue': [value: FilterValues]
 }>()
 
+// Composables
+const { fetchCategories, getCategoryOptions } = useCustomCategories()
+
 // Computed for two-way binding
 const filters = computed({
   get: () => props.modelValue,
@@ -25,10 +36,15 @@ const filters = computed({
 })
 
 // Category items for select - using null for "All" option
-const categoryItems = computed(() => [
-  { label: 'All Categories', value: null },
-  ...getCategoryOptions(),
-])
+const categoryItems = computed(() => {
+  const expenseOptions = getCategoryOptions('expense')
+  const incomeOptions = getCategoryOptions('income')
+  return [
+    { label: 'All Categories', value: null },
+    ...expenseOptions.map(option => ({ ...option, icon: undefined })),
+    ...incomeOptions.map(option => ({ ...option, icon: undefined })),
+  ]
+})
 
 // Type items for select - using null for "All" option
 const typeItems = computed(() => [
@@ -36,6 +52,11 @@ const typeItems = computed(() => [
   { label: '💰 Income', value: 'income' },
   { label: '💸 Expense', value: 'expense' },
 ])
+
+// Fetch categories on mount
+onMounted(async () => {
+  await fetchCategories()
+})
 </script>
 
 <template>
@@ -64,30 +85,32 @@ const typeItems = computed(() => [
 
         <!-- Category -->
         <div>
-          <USelect
+          <USelectMenu
             v-model="filters.category"
             :items="categoryItems"
             placeholder="All categories"
             size="md"
+            class="w-full"
           >
             <template #leading>
               <UIcon name="i-heroicons-tag" class="w-4 h-4 text-gray-400" />
             </template>
-          </USelect>
+          </USelectMenu>
         </div>
 
         <!-- Type -->
         <div>
-          <USelect
+          <USelectMenu
             v-model="filters.type"
             :items="typeItems"
             placeholder="All types"
             size="md"
+            class="w-full"
           >
             <template #leading>
               <UIcon name="i-heroicons-arrows-right-left" class="w-4 h-4 text-gray-400" />
             </template>
-          </USelect>
+          </USelectMenu>
         </div>
 
         <!-- Month -->

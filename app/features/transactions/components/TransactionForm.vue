@@ -3,7 +3,6 @@ import type { CreateTransactionInput, ExpenseCategory, RecurringFrequency, Trans
 import { computed, onMounted, ref, watch } from 'vue'
 import AddCategoryModal from '~/components/AddCategoryModal.vue'
 import { useCustomCategories } from '~/composables/useCustomCategories'
-import { getCategoryOptions } from '~/utils/categories'
 import { useTransactionForm } from '../composables/useTransactionForm'
 
 // Props
@@ -25,19 +24,27 @@ const emit = defineEmits<Emits>()
 
 // Composables
 const { submitTransaction } = useTransactionForm()
-const { categories, fetchCategories, getCategoryOptions: getCustomCategoryOptions } = useCustomCategories()
+const { fetchCategories, getCategoryOptions: getCustomCategoryOptions } = useCustomCategories()
 
 // Form state
 const state = ref({
   type: 'expense' as 'income' | 'expense',
   amount: 0,
-  vat: 0,
   category: '',
   description: '',
   date: new Date().toISOString().split('T')[0],
   isRecurring: false,
   recurringFrequency: 'monthly' as RecurringFrequency,
   reminderDays: 3,
+  // Fee breakdown fields
+  vat: 0,
+  serviceFee: 0,
+  commission: 0,
+  stampDuty: 0,
+  transferFee: 0,
+  processingFee: 0,
+  otherFees: 0,
+  feeNote: '',
 })
 
 // Local state
@@ -48,28 +55,9 @@ const showAddCategoryModal = ref(false)
 // Computed
 const isEditing = computed(() => !!props.transaction)
 
-// Default category options
-const defaultExpenseCategories = getCategoryOptions()
-
-const defaultIncomeCategories = [
-  { label: '💼 Salary', value: 'salary' },
-  { label: '💻 Freelance', value: 'freelance' },
-  { label: '🏢 Business Income', value: 'business' },
-  { label: '📈 Investment Returns', value: 'investment' },
-  { label: '🏠 Rental Income', value: 'rental' },
-  { label: '🎁 Gift/Bonus', value: 'gift' },
-  { label: '💰 Other Income', value: 'other' },
-]
-
-// Merge default and custom categories
+// Get all categories (system + custom) by type
 const availableCategories = computed(() => {
-  const defaultCategories = state.value.type === 'income' ? defaultIncomeCategories : defaultExpenseCategories
-  const customCategories = getCustomCategoryOptions(state.value.type)
-
-  return [
-    ...defaultCategories,
-    ...customCategories,
-  ]
+  return getCustomCategoryOptions(state.value.type)
 })
 
 // Handler for when a new category is created
@@ -83,13 +71,21 @@ function resetForm() {
   state.value = {
     type: 'expense',
     amount: 0,
-    vat: 0,
     category: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
     isRecurring: false,
     recurringFrequency: 'monthly',
     reminderDays: 3,
+    // Fee breakdown fields
+    vat: 0,
+    serviceFee: 0,
+    commission: 0,
+    stampDuty: 0,
+    transferFee: 0,
+    processingFee: 0,
+    otherFees: 0,
+    feeNote: '',
   }
   error.value = ''
 }
@@ -98,13 +94,21 @@ function populateForm(transaction: Transaction) {
   state.value = {
     type: transaction.type,
     amount: transaction.amount,
-    vat: transaction.vat || 0,
     category: transaction.category as string,
     description: transaction.description,
     date: new Date(transaction.date).toISOString().split('T')[0],
     isRecurring: transaction.isRecurring || false,
     recurringFrequency: 'monthly',
     reminderDays: 3,
+    // Fee breakdown fields
+    vat: transaction.vat || 0,
+    serviceFee: transaction.serviceFee || 0,
+    commission: transaction.commission || 0,
+    stampDuty: transaction.stampDuty || 0,
+    transferFee: transaction.transferFee || 0,
+    processingFee: transaction.processingFee || 0,
+    otherFees: transaction.otherFees || 0,
+    feeNote: transaction.feeNote || '',
   }
 }
 
@@ -141,10 +145,18 @@ async function handleSubmit() {
     const transactionData: CreateTransactionInput = {
       type: state.value.type,
       amount: state.value.amount,
-      vat: state.value.vat || undefined,
       category: state.value.category as ExpenseCategory,
       description: state.value.description.trim(),
       date: state.value.date!, // Send as string, backend will coerce to Date
+      // Fee breakdown fields (only include if non-zero)
+      vat: state.value.vat || undefined,
+      serviceFee: state.value.serviceFee || undefined,
+      commission: state.value.commission || undefined,
+      stampDuty: state.value.stampDuty || undefined,
+      transferFee: state.value.transferFee || undefined,
+      processingFee: state.value.processingFee || undefined,
+      otherFees: state.value.otherFees || undefined,
+      feeNote: state.value.feeNote?.trim() || undefined,
     }
 
     const result = await submitTransaction(
@@ -286,23 +298,103 @@ watch(() => state.value.type, () => {
           </p>
         </div>
 
-        <!-- VAT (Optional) -->
-        <div class="space-y-2">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            VAT (Optional)
-          </label>
-          <div class="relative">
-            <span
-              class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-lg font-semibold pointer-events-none z-10"
-            >₦</span>
-            <UInput
-              v-model="state.vat" type="number" step="0.01" min="0" placeholder="0.00" size="xl"
-              class="pl-8 w-full" :ui="{ base: 'text-lg font-semibold' }"
-            />
+        <!-- Fee Breakdown Section (Optional) -->
+        <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-receipt-percent" class="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Fee Breakdown (Optional)</h4>
           </div>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            VAT amount included in this transaction (if applicable)
+          <p class="text-xs text-gray-600 dark:text-gray-400">
+            Break down fees and charges included in the transaction amount
           </p>
+
+          <!-- Fee Fields Grid -->
+          <div class="grid grid-cols-2 gap-3">
+            <!-- VAT -->
+            <div class="space-y-1">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                VAT/Tax
+              </label>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none z-10">₦</span>
+                <UInput v-model.number="state.vat" type="number" step="0.01" min="0" placeholder="0.00" size="sm" class="pl-6" />
+              </div>
+            </div>
+
+            <!-- Service Fee -->
+            <div class="space-y-1">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Service Fee
+              </label>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none z-10">₦</span>
+                <UInput v-model.number="state.serviceFee" type="number" step="0.01" min="0" placeholder="0.00" size="sm" class="pl-6" />
+              </div>
+            </div>
+
+            <!-- Commission -->
+            <div class="space-y-1">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Commission
+              </label>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none z-10">₦</span>
+                <UInput v-model.number="state.commission" type="number" step="0.01" min="0" placeholder="0.00" size="sm" class="pl-6" />
+              </div>
+            </div>
+
+            <!-- Stamp Duty -->
+            <div class="space-y-1">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Stamp Duty
+              </label>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none z-10">₦</span>
+                <UInput v-model.number="state.stampDuty" type="number" step="0.01" min="0" placeholder="0.00" size="sm" class="pl-6" />
+              </div>
+            </div>
+
+            <!-- Transfer Fee -->
+            <div class="space-y-1">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Transfer Fee
+              </label>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none z-10">₦</span>
+                <UInput v-model.number="state.transferFee" type="number" step="0.01" min="0" placeholder="0.00" size="sm" class="pl-6" />
+              </div>
+            </div>
+
+            <!-- Processing Fee -->
+            <div class="space-y-1">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Processing Fee
+              </label>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none z-10">₦</span>
+                <UInput v-model.number="state.processingFee" type="number" step="0.01" min="0" placeholder="0.00" size="sm" class="pl-6" />
+              </div>
+            </div>
+
+            <!-- Other Fees -->
+            <div class="space-y-1 col-span-2">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Other Fees
+              </label>
+              <div class="relative">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm pointer-events-none z-10">₦</span>
+                <UInput v-model.number="state.otherFees" type="number" step="0.01" min="0" placeholder="0.00" size="sm" class="pl-6" />
+              </div>
+            </div>
+
+            <!-- Fee Note -->
+            <div class="space-y-1 col-span-2">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Fee Note
+              </label>
+              <UTextarea v-model="state.feeNote" placeholder="e.g., Includes 7.5% VAT and ₦50 stamp duty" :rows="2" size="sm" class="w-full" />
+            </div>
+          </div>
         </div>
 
         <!-- Category -->
