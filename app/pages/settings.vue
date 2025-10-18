@@ -11,6 +11,10 @@ definePageMeta({
   layout: 'dashboard',
 })
 
+useHead({
+  title: 'Settings - Personal Finance Tracker',
+})
+
 // Import from the new features structure
 const {
   selectedTab,

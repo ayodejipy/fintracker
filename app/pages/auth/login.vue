@@ -5,6 +5,10 @@ definePageMeta({
   layout: 'auth',
 })
 
+useHead({
+  title: 'Login - Personal Finance Tracker',
+})
+
 const { isAuthenticated } = useAuth()
 
 // Redirect authenticated users to dashboard

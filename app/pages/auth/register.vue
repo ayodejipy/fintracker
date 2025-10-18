@@ -6,6 +6,10 @@ definePageMeta({
   layout: 'auth',
 })
 
+useHead({
+  title: 'Register - Personal Finance Tracker',
+})
+
 const { isAuthenticated } = useAuth()
 
 // Track current step for sidebar updates

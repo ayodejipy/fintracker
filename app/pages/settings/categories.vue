@@ -8,6 +8,10 @@ definePageMeta({
   layout: 'dashboard',
 })
 
+useHead({
+  title: 'Manage Categories - Personal Finance Tracker',
+})
+
 // Composables
 const { categories, loading, fetchCategories, deleteCategory } = useCustomCategories()
 const toast = useToast()

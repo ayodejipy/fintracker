@@ -26,6 +26,11 @@ definePageMeta({
   layout: 'dashboard',
 })
 
+// Set page title
+useHead({
+  title: 'Dashboard - Personal Finance Tracker',
+})
+
 // Load dashboard data on mount and when authentication changes
 onMounted(async () => {
   console.log('Dashboard page - onMounted')

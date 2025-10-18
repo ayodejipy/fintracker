@@ -4,6 +4,11 @@ definePageMeta({
   layout: false,
 })
 
+// Set page title
+useHead({
+  title: 'Personal Finance Tracker - Manage Your Money Better',
+})
+
 const { isAuthenticated } = useAuth()
 
 // Redirect authenticated users to dashboard

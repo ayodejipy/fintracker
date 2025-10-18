@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Budget, BudgetAnalysisResponse } from '~/types'
-import { getCategoryOptions } from '../../../utils/categories'
+import { useCustomCategories } from '~/composables/useCustomCategories'
 import { useBudgets } from '../composables/useBudgets'
 import BudgetForm from './BudgetForm.vue'
 
@@ -25,6 +25,8 @@ const {
   deleteBudget,
 } = useBudgets()
 
+const { fetchCategories, getCategoryOptions } = useCustomCategories()
+
 // Reactive state
 const budgets = ref<Budget[]>(props.initialBudgets)
 const analysis = ref<BudgetAnalysisResponse['data'] | null>(null)
@@ -35,7 +37,8 @@ const metrics = computed(() => calculateMetrics(budgets.value))
 
 const availableCategories = computed(() => {
   const usedCategories = new Set(budgets.value.map(b => b.category))
-  return getCategoryOptions().filter(option => !usedCategories.has(option.value))
+  const expenseOptions = getCategoryOptions('expense')
+  return expenseOptions.filter(option => !usedCategories.has(option.value as any))
 })
 
 // Methods
@@ -47,6 +50,10 @@ async function refreshData() {
 
   if (budgetData) { budgets.value = budgetData }
   if (analysisData) { analysis.value = analysisData }
+}
+
+async function loadCategories() {
+  await fetchCategories()
 }
 
 async function handleSync() {
@@ -145,7 +152,10 @@ function handleAddBudget() {
 watch(selectedMonth, refreshData)
 
 // Initialize
-onMounted(refreshData)
+onMounted(async () => {
+  await loadCategories()
+  await refreshData()
+})
 </script>
 
 <template>
