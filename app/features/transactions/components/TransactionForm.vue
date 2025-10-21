@@ -61,8 +61,11 @@ const availableCategories = computed(() => {
 })
 
 // Handler for when a new category is created
-function handleCategorySaved(categoryName: string) {
-  state.value.category = categoryName
+async function handleCategorySaved(categoryValue: string) {
+  // Refresh categories to include the newly created one
+  await fetchCategories()
+  // Set the new category value in the form
+  state.value.category = categoryValue
   showAddCategoryModal.value = false
 }
 

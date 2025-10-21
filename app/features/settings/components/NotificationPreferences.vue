@@ -77,8 +77,8 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
-              :model-value="localPreferences.email.budgetAlerts"
+            <USwitch
+              v-model="localPreferences.email.budgetAlerts"
               size="lg"
               @update:model-value="(value) => updateEmailPreference('budgetAlerts', value)"
             />
@@ -99,7 +99,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.email.goalReminders"
               size="lg"
               @update:model-value="(value) => updateEmailPreference('goalReminders', value)"
@@ -121,7 +121,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.email.weeklyReports"
               size="lg"
               @update:model-value="(value) => updateEmailPreference('weeklyReports', value)"
@@ -143,7 +143,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.email.monthlyReports"
               size="lg"
               @update:model-value="(value) => updateEmailPreference('monthlyReports', value)"
@@ -165,7 +165,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.email.securityAlerts"
               size="lg"
               @update:model-value="(value) => updateEmailPreference('securityAlerts', value)"
@@ -199,7 +199,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.push.budgetAlerts"
               size="lg"
               @update:model-value="(value) => updatePushPreference('budgetAlerts', value)"
@@ -221,7 +221,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.push.goalReminders"
               size="lg"
               @update:model-value="(value) => updatePushPreference('goalReminders', value)"
@@ -243,7 +243,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.push.weeklyReports"
               size="lg"
               @update:model-value="(value) => updatePushPreference('weeklyReports', value)"
@@ -265,7 +265,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.push.monthlyReports"
               size="lg"
               @update:model-value="(value) => updatePushPreference('monthlyReports', value)"
@@ -287,7 +287,7 @@ function updatePushPreference(key: keyof NotificationPreferencesInput['push'], v
                 </p>
               </div>
             </div>
-            <UToggle
+            <USwitch
               :model-value="localPreferences.push.securityAlerts"
               size="lg"
               @update:model-value="(value) => updatePushPreference('securityAlerts', value)"
