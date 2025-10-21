@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,64 +8,57 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  name          String
-  password      String
-  monthlyIncome Decimal  @db.Decimal(10, 2)
-  currency      String   @default("NGN")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  transactions Transaction[]
-  loans        Loan[]
-  budgets      Budget[]
-  savingsGoals SavingsGoal[]
-  notifications Notification[]
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  name                    String
+  monthlyIncome           Decimal                  @db.Decimal(10, 2)
+  currency                String                   @default("NGN")
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  password                String
+  budgets                 Budget[]
+  categories              Category[]
+  loans                   Loan[]
   notificationPreferences NotificationPreferences?
-  recurringExpenses RecurringExpense[]
-  categories   Category[]
+  notifications           Notification[]
+  recurringExpenses       RecurringExpense[]
+  savingsGoals            SavingsGoal[]
+  transactions            Transaction[]
 
   @@map("users")
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
-  userId      String
-  amount      Decimal  @db.Decimal(10, 2)
-  category    String
-  description String
-  date        DateTime
-  type        String   // 'income' or 'expense'
-  isRecurring Boolean  @default(false)
+  id                 String            @id @default(cuid())
+  userId             String
+  amount             Decimal           @db.Decimal(10, 2)
+  category           String
+  description        String
+  date               DateTime
+  type               String
+  createdAt          DateTime          @default(now())
+  isRecurring        Boolean           @default(false)
   recurringExpenseId String?
-
-  // Fee breakdown fields for transparency
-  vat             Decimal? @db.Decimal(10, 2) // VAT/Tax amount (e.g., 7.5% in Nigeria)
-  serviceFee      Decimal? @db.Decimal(10, 2) // Restaurant/hotel service charges
-  commission      Decimal? @db.Decimal(10, 2) // Bank/payment processor commissions
-  stampDuty       Decimal? @db.Decimal(10, 2) // Nigerian stamp duty on transfers (₦50 for >₦10,000)
-  transferFee     Decimal? @db.Decimal(10, 2) // Inter-bank transfer fees
-  processingFee   Decimal? @db.Decimal(10, 2) // Payment processing charges
-  otherFees       Decimal? @db.Decimal(10, 2) // Any other miscellaneous fees
-  feeNote         String?  // Optional note about fees
-  total           Decimal? @db.Decimal(10, 2) // Total amount (amount + all fees) - what was actually debited/credited
-
-  // Import and review workflow fields
-  isImported       Boolean  @default(false)  // Whether this was imported from PDF
-  importSource     String?  // e.g., 'GTBank', 'Access Bank'
-  originalDesc     String?  // Original description from bank statement
-  confidence       String?  // 'high', 'medium', 'low', 'manual'
-  needsReview      Boolean  @default(false)  // Flagged for user review
-  flags            String?  // JSON array of edge case flags
-  userNote         String?  // User-added clarification
-  reviewedAt       DateTime? // When user confirmed this transaction
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  recurringExpense RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+  updatedAt          DateTime          @updatedAt
+  commission         Decimal?          @db.Decimal(10, 2)
+  confidence         String?
+  feeNote            String?
+  flags              String?
+  importSource       String?
+  isImported         Boolean           @default(false)
+  needsReview        Boolean           @default(false)
+  originalDesc       String?
+  otherFees          Decimal?          @db.Decimal(10, 2)
+  processingFee      Decimal?          @db.Decimal(10, 2)
+  reviewedAt         DateTime?
+  serviceFee         Decimal?          @db.Decimal(10, 2)
+  stampDuty          Decimal?          @db.Decimal(10, 2)
+  transferFee        Decimal?          @db.Decimal(10, 2)
+  userNote           String?
+  vat                Decimal?          @db.Decimal(10, 2)
+  total              Decimal?          @db.Decimal(10, 2)
+  recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id])
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([date])
@@ -80,19 +70,18 @@ model Transaction {
 }
 
 model Loan {
-  id                   String   @id @default(cuid())
-  userId               String
-  name                 String
-  initialAmount        Decimal  @db.Decimal(10, 2)
-  currentBalance       Decimal  @db.Decimal(10, 2)
-  monthlyPayment       Decimal  @db.Decimal(10, 2)
-  interestRate         Decimal  @default(0) @db.Decimal(5, 4)
-  startDate            DateTime
-  projectedPayoffDate  DateTime?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                  String    @id @default(cuid())
+  userId              String
+  name                String
+  initialAmount       Decimal   @db.Decimal(10, 2)
+  currentBalance      Decimal   @db.Decimal(10, 2)
+  monthlyPayment      Decimal   @db.Decimal(10, 2)
+  interestRate        Decimal   @default(0) @db.Decimal(5, 4)
+  startDate           DateTime
+  projectedPayoffDate DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("loans")
@@ -104,11 +93,10 @@ model Budget {
   category     String
   monthlyLimit Decimal  @db.Decimal(10, 2)
   currentSpent Decimal  @default(0) @db.Decimal(10, 2)
-  month        String   // YYYY-MM format
+  month        String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, category, month])
   @@index([userId])
@@ -126,32 +114,28 @@ model SavingsGoal {
   monthlyContribution Decimal  @db.Decimal(10, 2)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("savings_goals")
 }
 
 model Notification {
-  id          String   @id @default(cuid())
-  userId      String
-  type        String   // 'budget_alert', 'payment_reminder', 'savings_reminder', 'goal_achieved'
-  title       String
-  message     String
-  isRead      Boolean  @default(false)
-  priority    String   @default("medium") // 'low', 'medium', 'high'
-  scheduledAt DateTime?
-  readAt      DateTime?
-  createdAt   DateTime @default(now())
-  
-  // Optional references to related entities
+  id            String    @id @default(cuid())
+  userId        String
+  type          String
+  title         String
+  message       String
+  isRead        Boolean   @default(false)
+  priority      String    @default("medium")
+  scheduledAt   DateTime?
+  readAt        DateTime?
+  createdAt     DateTime  @default(now())
   budgetId      String?
   loanId        String?
   savingsGoalId String?
   transactionId String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isRead])
@@ -160,42 +144,40 @@ model Notification {
 }
 
 model NotificationPreferences {
-  id                    String  @id @default(cuid())
-  userId                String  @unique
-  budgetAlerts          Boolean @default(true)
-  paymentReminders      Boolean @default(true)
-  savingsReminders      Boolean @default(true)
-  goalAchievements      Boolean @default(true)
-  emailNotifications    Boolean @default(false)
-  pushNotifications     Boolean @default(true)
-  budgetThreshold       Int     @default(80) // Percentage threshold for budget alerts
-  reminderDaysBefore    Int     @default(3)  // Days before due date for reminders
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  budgetAlerts       Boolean  @default(true)
+  paymentReminders   Boolean  @default(true)
+  savingsReminders   Boolean  @default(true)
+  goalAchievements   Boolean  @default(true)
+  emailNotifications Boolean  @default(false)
+  pushNotifications  Boolean  @default(true)
+  budgetThreshold    Int      @default(80)
+  reminderDaysBefore Int      @default(3)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
 }
 
 model RecurringExpense {
-  id              String   @id @default(cuid())
-  userId          String
-  name            String
-  amount          Decimal  @db.Decimal(10, 2)
-  category        String
-  frequency       String   // 'monthly', 'weekly', 'yearly'
-  nextDueDate     DateTime
-  lastPaidDate    DateTime?
-  isActive        Boolean  @default(true)
-  description     String?
-  reminderDays    Int      @default(3) // Days before due date to remind
-  autoCreateTransaction Boolean @default(false) // Whether to auto-create transactions
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[] // Related transactions created from this recurring expense
+  id                    String        @id @default(cuid())
+  userId                String
+  name                  String
+  amount                Decimal       @db.Decimal(10, 2)
+  category              String
+  frequency             String
+  nextDueDate           DateTime
+  lastPaidDate          DateTime?
+  isActive              Boolean       @default(true)
+  description           String?
+  reminderDays          Int           @default(3)
+  autoCreateTransaction Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions          Transaction[]
 
   @@index([userId])
   @@index([nextDueDate])
@@ -206,7 +188,8 @@ model RecurringExpense {
 model Category {
   id          String   @id @default(cuid())
   userId      String?  // null = system-wide default category, non-null = user-specific custom category
-  name        String   // Category name (e.g., "Entertainment", "Medical", "food", "rent")
+  name        String   // Category display name (e.g., "Food & Groceries", "Entertainment")
+  value       String   // Category value used in code (e.g., "food_groceries", "entertainment")
   type        String   // 'income', 'expense', or 'fee'
   isSystem    Boolean  @default(false) // true = default/system category, false = user-created
   isActive    Boolean  @default(true)  // Can be disabled by user
@@ -219,10 +202,11 @@ model Category {
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, name, type]) // Unique per user and type (system categories have userId = null)
+  @@unique([userId, value, type]) // Unique value per user and type (system categories have userId = null)
   @@index([userId])
   @@index([type])
   @@index([isSystem])
   @@index([isActive])
+  @@index([value])
   @@map("categories")
 }

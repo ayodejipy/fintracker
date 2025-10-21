@@ -70,3 +70,66 @@ export function daysBetween(date1: Date | string, date2: Date | string): number 
   const diffTime = Math.abs(d2.getTime() - d1.getTime())
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }
+
+/**
+ * Get current month in YYYY-MM format
+ */
+export function getCurrentMonth(): string {
+  return new Date().toISOString().slice(0, 7)
+}
+
+/**
+ * Format month string (YYYY-MM) to readable format
+ */
+export function formatMonthLabel(month: string): string {
+  const date = new Date(`${month}-01`)
+  return date.toLocaleDateString('en-NG', {
+    year: 'numeric',
+    month: 'long',
+  })
+}
+
+/**
+ * Get previous month in YYYY-MM format
+ */
+export function getPreviousMonth(month: string): string {
+  const date = new Date(`${month}-01`)
+  date.setMonth(date.getMonth() - 1)
+  return date.toISOString().slice(0, 7)
+}
+
+/**
+ * Get next month in YYYY-MM format
+ */
+export function getNextMonth(month: string): string {
+  const date = new Date(`${month}-01`)
+  date.setMonth(date.getMonth() + 1)
+  return date.toISOString().slice(0, 7)
+}
+
+/**
+ * Check if month is in the future
+ */
+export function isMonthInFuture(month: string): boolean {
+  const monthDate = new Date(`${month}-01`)
+  const currentMonth = new Date(`${getCurrentMonth()}-01`)
+  return monthDate > currentMonth
+}
+
+/**
+ * Generate list of months for selection (last N months + current)
+ */
+export function getMonthOptions(numberOfMonths: number = 12): Array<{ label: string, value: string }> {
+  const options = []
+  const currentDate = new Date()
+
+  for (let i = 0; i < numberOfMonths; i++) {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
+    const value = date.toISOString().slice(0, 7)
+    const label = formatMonthLabel(value)
+
+    options.push({ label, value })
+  }
+
+  return options
+}

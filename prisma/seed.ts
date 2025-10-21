@@ -8,6 +8,18 @@ async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, saltRounds)
 }
 
+/**
+ * Generate category value from name
+ */
+function generateCategoryValue(name: string): string {
+  return name
+    .replace(/[&,/\s]+/g, '_')
+    .replace(/[()]/g, '')
+    .toLowerCase()
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+}
+
 async function seedDefaultCategories() {
   console.log('📁 Seeding default categories...')
 
@@ -15,6 +27,7 @@ async function seedDefaultCategories() {
   const expenseCategories = [
     {
       name: 'Food & Groceries',
+      value: 'food_groceries',
       type: 'expense',
       icon: '🍽️',
       color: '#10B981',
@@ -139,6 +152,7 @@ async function seedDefaultCategories() {
   const incomeCategories = [
     {
       name: 'Salary',
+      value: 'salary',
       type: 'income',
       icon: '💼',
       color: '#10B981',
@@ -147,6 +161,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Freelance',
+      value: 'freelance',
       type: 'income',
       icon: '💻',
       color: '#3B82F6',
@@ -155,6 +170,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Business Income',
+      value: 'business_income',
       type: 'income',
       icon: '🏢',
       color: '#8B5CF6',
@@ -163,6 +179,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Investment Returns',
+      value: 'investment_returns',
       type: 'income',
       icon: '📈',
       color: '#F59E0B',
@@ -171,6 +188,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Rental Income',
+      value: 'rental_income',
       type: 'income',
       icon: '🏠',
       color: '#EC4899',
@@ -179,6 +197,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Gift/Bonus',
+      value: 'gift_bonus',
       type: 'income',
       icon: '🎁',
       color: '#F97316',
@@ -187,6 +206,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Other Income',
+      value: 'other_income',
       type: 'income',
       icon: '💰',
       color: '#6366F1',
@@ -199,6 +219,7 @@ async function seedDefaultCategories() {
   const feeCategories = [
     {
       name: 'VAT',
+      value: 'vat',
       type: 'fee',
       icon: '📊',
       color: '#EF4444',
@@ -207,6 +228,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Service Fee',
+      value: 'service_fee',
       type: 'fee',
       icon: '🔧',
       color: '#F59E0B',
@@ -215,6 +237,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Commission',
+      value: 'commission',
       type: 'fee',
       icon: '💼',
       color: '#3B82F6',
@@ -223,6 +246,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Stamp Duty',
+      value: 'stamp_duty',
       type: 'fee',
       icon: '📜',
       color: '#8B5CF6',
@@ -231,6 +255,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Transfer Fee',
+      value: 'transfer_fee',
       type: 'fee',
       icon: '💸',
       color: '#EC4899',
@@ -239,6 +264,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Processing Fee',
+      value: 'processing_fee',
       type: 'fee',
       icon: '⚙️',
       color: '#6366F1',
@@ -247,6 +273,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Other Fees',
+      value: 'other_fees',
       type: 'fee',
       icon: '📋',
       color: '#6B7280',
@@ -259,6 +286,9 @@ async function seedDefaultCategories() {
 
   // Create or update all categories
   for (const category of allCategories) {
+    // Generate value if not provided
+    const value = (category as any).value || generateCategoryValue(category.name)
+
     // Check if category exists
     const existing = await prisma.category.findFirst({
       where: {
@@ -273,6 +303,7 @@ async function seedDefaultCategories() {
       await prisma.category.update({
         where: { id: existing.id },
         data: {
+          value,
           icon: category.icon,
           color: category.color,
           description: category.description,
@@ -286,6 +317,7 @@ async function seedDefaultCategories() {
         data: {
           userId: null, // System-wide default
           name: category.name,
+          value,
           type: category.type,
           icon: category.icon,
           color: category.color,
@@ -445,51 +477,51 @@ async function main() {
 // Helper functions to generate realistic data based on user profiles
 function generateTransactionsForProfile(user: any) {
   const baseTransactions = [
-    // Income
+    // Income - Using proper income category values
     {
       amount: user.monthlyIncome,
-      category: 'miscellaneous',
+      category: 'salary', // ✅ Using income category value
       description: 'Monthly Salary',
       date: new Date('2024-01-01'),
       type: 'income',
     },
   ]
 
-  // Expenses based on income level
+  // Expenses based on income level - Using proper expense category values
   const _expenseRatio = user.monthlyIncome / 1000000 // Scale expenses to income
 
   const expenses = [
     {
       amount: Math.floor(user.monthlyIncome * 0.25), // 25% for rent
-      category: 'rent',
+      category: 'housing', // ✅ Using expense category value
       description: 'Monthly Rent',
       date: new Date('2024-01-02'),
       type: 'expense',
     },
     {
       amount: Math.floor(user.monthlyIncome * 0.08), // 8% for transport
-      category: 'transport',
+      category: 'transportation', // ✅ Using expense category value
       description: 'Fuel and Transportation',
       date: new Date('2024-01-03'),
       type: 'expense',
     },
     {
       amount: Math.floor(user.monthlyIncome * 0.12), // 12% for food
-      category: 'food',
+      category: 'food_groceries', // ✅ Using expense category value
       description: 'Groceries and Food',
       date: new Date('2024-01-04'),
       type: 'expense',
     },
     {
       amount: Math.floor(user.monthlyIncome * 0.04), // 4% for data/airtime
-      category: 'data_airtime',
+      category: 'communication', // ✅ Using expense category value
       description: 'Internet and Phone Bills',
       date: new Date('2024-01-05'),
       type: 'expense',
     },
     {
       amount: Math.floor(user.monthlyIncome * 0.15), // 15% for savings
-      category: 'savings',
+      category: 'savings_investment', // ✅ Using expense category value
       description: 'Monthly Savings',
       date: new Date('2024-01-06'),
       type: 'expense',
@@ -500,19 +532,37 @@ function generateTransactionsForProfile(user: any) {
   if (user.profile === 'tech-professional') {
     expenses.push({
       amount: 50000,
-      category: 'miscellaneous',
+      category: 'shopping', // ✅ Using expense category value
       description: 'Tech Equipment',
       date: new Date('2024-01-10'),
       type: 'expense',
+    })
+
+    // Add freelance income for tech professionals
+    baseTransactions.push({
+      amount: 150000,
+      category: 'freelance', // ✅ Using income category value
+      description: 'Freelance Project Payment',
+      date: new Date('2024-01-15'),
+      type: 'income',
     })
   }
   else if (user.profile === 'entrepreneur') {
     expenses.push({
       amount: 200000,
-      category: 'miscellaneous',
+      category: 'business', // ✅ Using expense category value
       description: 'Business Investment',
       date: new Date('2024-01-15'),
       type: 'expense',
+    })
+
+    // Add business income for entrepreneurs
+    baseTransactions.push({
+      amount: 500000,
+      category: 'business_income', // ✅ Using income category value
+      description: 'Business Revenue',
+      date: new Date('2024-01-20'),
+      type: 'income',
     })
   }
 
@@ -566,31 +616,31 @@ function generateBudgetsForProfile(user: any, month: string) {
 
   return [
     {
-      category: 'rent',
+      category: 'housing', // ✅ Updated to use correct category value
       monthlyLimit: Math.floor(income * 0.25),
       currentSpent: Math.floor(income * 0.25),
       month,
     },
     {
-      category: 'transport',
+      category: 'transportation', // ✅ Updated to use correct category value
       monthlyLimit: Math.floor(income * 0.10),
       currentSpent: Math.floor(income * 0.08),
       month,
     },
     {
-      category: 'food',
+      category: 'food_groceries', // ✅ Updated to use correct category value
       monthlyLimit: Math.floor(income * 0.15),
       currentSpent: Math.floor(income * 0.12),
       month,
     },
     {
-      category: 'data_airtime',
+      category: 'communication', // ✅ Updated to use correct category value
       monthlyLimit: Math.floor(income * 0.05),
       currentSpent: Math.floor(income * 0.04),
       month,
     },
     {
-      category: 'miscellaneous',
+      category: 'miscellaneous', // ✅ This one is correct
       monthlyLimit: Math.floor(income * 0.10),
       currentSpent: Math.floor(income * 0.06),
       month,
