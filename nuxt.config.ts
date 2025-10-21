@@ -30,6 +30,9 @@ export default defineNuxtConfig({
     alias: {
       '~/app': fileURLToPath(new URL('./app', import.meta.url)),
     },
+    externals: {
+      inline: ['@google/genai'],
+    },
   },
 
   // CSS configuration
