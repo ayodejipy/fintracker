@@ -11,7 +11,62 @@ const emit = defineEmits<{
 const { user, logout } = useAuth()
 const searchQuery = ref('')
 
-// User dropdown menu items
+// Quick Actions menu items
+const quickActionItems = computed(() => [
+  [
+    {
+      label: 'Analysis',
+      type: 'label',
+    },
+  ],
+  [
+    {
+      label: 'Income Analysis',
+      icon: 'i-heroicons-arrow-trending-up',
+      iconClass: 'text-green-500',
+      to: '/income',
+      description: 'View detailed income breakdown',
+    },
+    {
+      label: 'Expense Analysis',
+      icon: 'i-heroicons-arrow-trending-down',
+      iconClass: 'text-red-500',
+      to: '/expenses',
+      description: 'Deep dive into spending patterns',
+    },
+  ],
+  [
+    {
+      label: 'Quick Actions',
+      type: 'label',
+    },
+  ],
+  [
+    {
+      label: 'Import Statement',
+      icon: 'i-heroicons-arrow-up-tray',
+      iconClass: 'text-blue-500',
+      to: '/import-statement',
+      description: 'Upload bank statement',
+    },
+    {
+      label: 'Add Transaction',
+      icon: 'i-heroicons-plus-circle',
+      iconClass: 'text-purple-500',
+      to: '/transactions?action=new',
+      description: 'Record new transaction',
+    },
+    {
+      label: 'Create Budget',
+      icon: 'i-heroicons-calculator',
+      iconClass: 'text-orange-500',
+      to: '/budgets?action=new',
+      description: 'Set up a new budget',
+    },
+  ],
+])
+
+// User dropdown menu items (cleaned up)
 const userMenuItems = computed(() => {
   const userData = user.value?.user
   return [
@@ -34,7 +89,6 @@ const userMenuItems = computed(() => {
         label: 'Settings',
         icon: 'i-heroicons-cog-6-tooth',
         to: '/settings',
-        kbds: [','],
       },
     ],
     [
@@ -53,7 +107,7 @@ const userMenuItems = computed(() => {
       {
         label: 'Logout',
         icon: 'i-heroicons-arrow-right-on-rectangle',
-        click: () => logout(),
+        onSelect: () => logout(),
       },
     ],
   ]
@@ -88,7 +142,33 @@ const userMenuItems = computed(() => {
       </div>
 
       <!-- Right Side Actions -->
-      <div class="flex items-center gap-2 sm:gap-4 relative">
+      <div class="flex items-center gap-2 sm:gap-3 relative">
+        <!-- Quick Actions -->
+        <UDropdownMenu :items="quickActionItems">
+          <UButton
+            color="primary"
+            variant="soft"
+            size="sm"
+            class="hidden sm:flex items-center gap-2 px-3 py-2"
+          >
+            <UIcon name="i-heroicons-bolt" class="w-4 h-4" />
+            <span class="font-medium text-sm">Quick Actions</span>
+            <UIcon name="i-heroicons-chevron-down" class="w-3 h-3" />
+          </UButton>
+          <!-- Mobile version - icon only -->
+          <UButton
+            color="primary"
+            variant="soft"
+            size="sm"
+            class="sm:hidden p-2"
+          >
+            <UIcon name="i-heroicons-bolt" class="w-5 h-5" />
+          </UButton>
+        </UDropdownMenu>
+
+        <!-- Divider -->
+        <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block" />
+
         <!-- Notifications -->
         <NotificationDropdown />
 
@@ -101,9 +181,12 @@ const userMenuItems = computed(() => {
           <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400" />
         </button>
 
+        <!-- Divider -->
+        <div class="h-6 w-px bg-gray-200 dark:bg-gray-700" />
+
         <!-- User Profile -->
         <UDropdownMenu :items="userMenuItems">
-          <UButton color="neutral" variant="ghost" class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+          <UButton color="neutral" variant="ghost" class="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50">
             <UAvatar :alt="user?.user?.name || 'User'" size="sm" class="w-8 h-8">
               <template #fallback>
                 <span class="text-sm font-semibold">
@@ -111,7 +194,7 @@ const userMenuItems = computed(() => {
                 </span>
               </template>
             </UAvatar>
-            <span class="hidden sm:block font-medium text-sm text-gray-700 dark:text-gray-300">
+            <span class="hidden md:block font-medium text-sm text-gray-700 dark:text-gray-300">
               {{ user?.user?.name || 'Eleanor' }}
             </span>
             <UIcon name="i-heroicons-chevron-down" class="w-4 h-4 text-gray-400 dark:text-gray-500" />

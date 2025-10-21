@@ -88,6 +88,7 @@ export interface CustomCategory {
   id: string
   userId: string | null  // null = system category
   name: string
+  value: string  // Database value (e.g., "food_groceries", "transportation")
   type: 'income' | 'expense' | 'fee'
   icon?: string
   color?: string
@@ -279,6 +280,7 @@ export interface CreateSavingsGoalInput {
 
 export interface CreateCustomCategoryInput {
   name: string
+  value: string  // Must be unique per user and type
   type: 'income' | 'expense' | 'fee'
   icon?: string
   color?: string
@@ -288,6 +290,7 @@ export interface CreateCustomCategoryInput {
 
 export interface UpdateCustomCategoryInput {
   name?: string
+  value?: string
   icon?: string
   color?: string
   description?: string
@@ -592,7 +595,7 @@ export interface ParsedTransaction {
   amount: number // Main transaction amount (before fees)
   type: 'debit' | 'credit'
   balance?: number
-  category?: ExpenseCategory
+  category?: string // Category value (e.g., "food_groceries", "transportation", "salary")
   confidence?: TransactionConfidence
   needsReview?: boolean
   flags?: TransactionFlag[]

@@ -22,14 +22,10 @@ export const PROCESSING_STEPS: ProcessingStep[] = [
  * Get detailed status description based on progress
  */
 export function getStatusDescription(progress: number): string {
-  if (progress < 25)
-    return 'Preparing your file for upload...'
-  if (progress < 50)
-    return 'Uploading your bank statement to secure server...'
-  if (progress < 75)
-    return 'Extracting and analyzing transaction data with AI...'
-  if (progress < 100)
-    return 'Categorizing and validating transactions...'
+  if (progress < 25) { return 'Preparing your file for upload...' }
+  if (progress < 50) { return 'Uploading your bank statement to secure server...' }
+  if (progress < 75) { return 'Extracting and analyzing transaction data...' }
+  if (progress < 100) { return 'Categorizing and validating transactions...' }
   return 'Processing complete! Preparing results...'
 }
 
