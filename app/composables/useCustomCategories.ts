@@ -157,7 +157,7 @@ export function useCustomCategories() {
 
     return customCategories.map(c => ({
       label: c.icon ? `${c.icon} ${c.name}` : c.name,
-      value: c.name.replace(/[&,/\s]+/g, '_').toLowerCase(),
+      value: c.value, // ✅ Use actual DB value instead of generating it
       icon: c.icon,
       color: c.color,
       isSystem: c.isSystem,

@@ -1,5 +1,4 @@
 import type { ApiResponse } from '~/types'
-import { computed } from 'vue'
 
 // Dashboard data types
 export interface DashboardData {
@@ -63,6 +62,14 @@ export interface DashboardData {
       percentage: number
     }>
   }
+  income: {
+    total: number
+    byCategory: Array<{
+      category: string
+      amount: number
+      percentage: number
+    }>
+  }
   recentTransactions: Array<{
     id: string
     amount: number
@@ -78,24 +85,34 @@ export interface DashboardData {
   }>
 }
 
-export function useDashboard(month?: string) {
-  // Build query params for cache key
-  const queryParams = month ? { month } : {}
-  const cacheKey = `dashboard-overview${month ? `-${month}` : ''}`
+export function useDashboard(initialMonth?: Ref<string> | string) {
+  // Use the passed ref directly if it's a ref, otherwise create a new one
+  const selectedMonth = isRef(initialMonth) ? initialMonth : ref(typeof initialMonth === 'string' ? initialMonth : undefined)
+
+  // Build query params reactively
+  const queryParams = computed(() => selectedMonth.value ? { month: selectedMonth.value } : {})
+
+  // Use a single cache key - the query params will handle filtering
+  // This ensures we have one reactive fetch instance that updates smoothly
+  const cacheKey = 'dashboard-overview'
 
   // Use useFetch for reactive, cached data
-  const { data: response, pending: loading, error: fetchError, refresh } = useFetch<ApiResponse<DashboardData>>('/api/dashboard/overview', {
+  const { data: response, status, pending: loading, error: fetchError, refresh } = useFetch('/api/dashboard/overview', {
     key: cacheKey,
     query: queryParams,
-    server: true,
+    server: false,
     lazy: false,
-    default: () => ({ success: false, data: null, message: 'Loading...' }),
-    transform: (data: ApiResponse<DashboardData>) => data,
+    immediate: true,
+    // Watch for query changes and refetch
+    watch: [queryParams],
+    // Provide default data structure to avoid null/undefined states
+    default: () => null,
   })
 
   // Extract dashboard data from API response
   const dashboardData = computed(() => {
-    return response.value?.success ? response.value.data : null
+    const data = response.value as ApiResponse<DashboardData> | null
+    return data?.success ? data.data : null
   })
 
   // Extract error message
@@ -103,8 +120,9 @@ export function useDashboard(month?: string) {
     if (fetchError.value) {
       return fetchError.value.data?.message || 'Failed to fetch dashboard data'
     }
-    if (response.value && !response.value.success) {
-      return response.value.message || 'Failed to fetch dashboard data'
+    const data = response.value as ApiResponse<DashboardData> | null
+    if (data && !data.success) {
+      return data.message || 'Failed to fetch dashboard data'
     }
     return null
   })
@@ -114,11 +132,20 @@ export function useDashboard(month?: string) {
     return refresh()
   }
 
-  // Fetch data for different month (creates new cache entry)
-  const fetchDashboardData = async (_newMonth?: string) => {
-    // If month is different, we need to use a different composable instance
-    // For now, just refresh current data
-    return refresh()
+  // Fetch data (either refresh current month or change month)
+  const fetchDashboardData = async (newMonth?: string) => {
+    if (newMonth) {
+      selectedMonth.value = newMonth
+      // Watch will trigger refetch automatically
+    }
+    else {
+      return refresh()
+    }
+  }
+
+  // Change the selected month
+  const changeMonth = (newMonth: string) => {
+    selectedMonth.value = newMonth
   }
 
   // Computed properties for easy access to dashboard metrics
@@ -140,7 +167,9 @@ export function useDashboard(month?: string) {
 
   // Financial health indicators
   const financialHealthScore = computed(() => {
-    if (!dashboardData.value) { return 0 }
+    if (!dashboardData.value) {
+      return 0
+    }
 
     let score = 0
     const data = dashboardData.value
@@ -180,23 +209,37 @@ export function useDashboard(month?: string) {
 
   const healthScoreColor = computed(() => {
     const score = financialHealthScore.value
-    if (score >= 80) { return 'green' }
-    if (score >= 60) { return 'yellow' }
-    if (score >= 40) { return 'orange' }
+    if (score >= 80) {
+      return 'green'
+    }
+    if (score >= 60) {
+      return 'yellow'
+    }
+    if (score >= 40) {
+      return 'orange'
+    }
     return 'red'
   })
 
   const healthScoreText = computed(() => {
     const score = financialHealthScore.value
-    if (score >= 80) { return 'Excellent' }
-    if (score >= 60) { return 'Good' }
-    if (score >= 40) { return 'Fair' }
+    if (score >= 80) {
+      return 'Excellent'
+    }
+    if (score >= 60) {
+      return 'Good'
+    }
+    if (score >= 40) {
+      return 'Fair'
+    }
     return 'Needs Improvement'
   })
 
   // Key insights
   const insights = computed(() => {
-    if (!dashboardData.value) { return [] }
+    if (!dashboardData.value) {
+      return []
+    }
 
     const insights = []
     const data = dashboardData.value
@@ -206,7 +249,7 @@ export function useDashboard(month?: string) {
       insights.push({
         type: 'warning',
         title: 'Negative Cash Flow',
-        message: `You're spending more than you earn this month. Consider reviewing your expenses.`,
+        message: 'You\'re spending more than you earn this month. Consider reviewing your expenses.',
         priority: 'high',
       })
     }
@@ -214,7 +257,7 @@ export function useDashboard(month?: string) {
       insights.push({
         type: 'success',
         title: 'Strong Cash Flow',
-        message: `Great job! You have strong positive cash flow this month.`,
+        message: 'Great job! You have strong positive cash flow this month.',
         priority: 'low',
       })
     }
@@ -252,7 +295,7 @@ export function useDashboard(month?: string) {
       insights.push({
         type: 'warning',
         title: 'High Debt Ratio',
-        message: `Your debt is significantly higher than your savings. Focus on debt reduction.`,
+        message: 'Your debt is significantly higher than your savings. Focus on debt reduction.',
         priority: 'high',
       })
     }
@@ -268,10 +311,13 @@ export function useDashboard(month?: string) {
     dashboardData: readonly(dashboardData),
     loading: readonly(loading),
     error: readonly(error),
+    selectedMonth: readonly(selectedMonth),
+    status: readonly(status),
 
     // Actions
     fetchDashboardData,
     refreshDashboard,
+    changeMonth,
 
     // Computed data sections
     currentMonthSummary,
