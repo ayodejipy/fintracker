@@ -78,6 +78,7 @@ export async function parseBankStatementWithLLM(text: string, categoriesPrompt?:
                     description: { type: Type.STRING },
                     amount: { type: Type.NUMBER },
                     type: { type: Type.STRING, enum: ['debit', 'credit'] },
+                    category: { type: Type.STRING, nullable: true }, // Category value (e.g., "food_groceries")
                     balance: { type: Type.NUMBER, nullable: true },
                     // Fee breakdown fields (all optional)
                     vat: { type: Type.NUMBER, nullable: true },
@@ -194,7 +195,15 @@ CRITICAL INSTRUCTIONS:
 4. Extract amounts as numbers (already cleaned, no currency symbols)
 5. Include the original description exactly as it appears
 6. Extract bank name, account number, and statement period if available
-7. **HANDLE PRE-GROUPED FEES CORRECTLY**:
+7. **CATEGORIZE EACH TRANSACTION**:
+   - Analyze the transaction description and assign the most appropriate category VALUE
+   - Use ONLY the category values from the list above (e.g., "food_groceries", NOT "Food & Groceries")
+   - For debits/expenses, use expense categories
+   - For credits/income, use income categories
+   - If unsure, use "miscellaneous" for expenses or "other_income" for income
+   - Look at the examples provided for each category to guide your decision
+
+8. **HANDLE PRE-GROUPED FEES CORRECTLY**:
 
    When you see a line like:
    "DATE: 01-Sep-2025 | DESC: NIP TRANSFER | AMOUNT: 9800 | FEES: 26.88 | COMMISSION: 25 | VAT: 1.88 | TOTAL: 9826.88"
@@ -212,12 +221,23 @@ CRITICAL INSTRUCTIONS:
    - Use the TOTAL field (if present) to populate balance calculation
    - Fee types include:
      * VAT/Tax (typically 7.5% in Nigeria)
-     * Service fees (restaurant/hotel charges)
+     * Service fees (restaurant/hotel charges - NOT for bank service charges)
      * Commission (bank/payment processor fees)
      * Stamp duty (₦50 for transfers >₦10,000 in Nigeria)
      * Transfer fees (inter-bank transfer charges)
      * Processing fees (payment processing charges)
      * Other fees (miscellaneous charges)
+
+9. **IMPORTANT - Bank Service Charge Transactions**:
+   - For transactions that ARE THEMSELVES service charges (SMS charges, account maintenance fees, monthly service fees, etc.):
+     * The 'amount' field IS the service charge - DO NOT duplicate it in 'serviceFee' field
+     * Only use 'serviceFee' for additional service fees on TOP of a main transaction
+     * Example: "SMS ALERT CHARGE FOR 29-AUG-2025 to 28-SEP-2025" with amount 192.00
+       → amount: 192.00, serviceFee: undefined (or 0), vat: 14.40
+       → The 192.00 IS the charge itself, not a fee on top of something else
+   - For regular transactions WITH service fees (e.g., restaurant bill with service charge):
+     * The 'amount' is the base transaction, 'serviceFee' is the additional charge
+     * Example: Restaurant bill 5000 + service fee 500 → amount: 5000, serviceFee: 500
 
 Return JSON in this exact format:
 {
@@ -233,15 +253,26 @@ Return JSON in this exact format:
       "description": "Transaction description",
       "amount": 9800.00,           // Main transaction amount (without fees)
       "type": "debit" or "credit",
+      "category": "transportation", // Category VALUE from the list above
       "balance": 5680.04,           // Final balance after all fees
       "vat": 1.88,                  // VAT fee (if present)
-      "serviceFee": 0,              // Service fee (if present)
+      "serviceFee": 0,              // Service fee ON TOP of transaction (NOT for bank service charges themselves)
       "commission": 25.00,          // Commission fee (if present)
       "stampDuty": 0,               // Stamp duty (if present)
       "transferFee": 0,             // Transfer fee (if present)
       "processingFee": 0,           // Processing fee (if present)
       "otherFees": 0,               // Other fees (if present)
-      "feeNote": "Commission and VAT already included" // Explanation (if needed)
+      "feeNote": "Optional explanation" // Explanation (if needed)
+    },
+    {
+      "date": "YYYY-MM-DD",
+      "description": "SMS ALERT CHARGE FOR AUG-SEP 2025",
+      "amount": 192.00,            // THIS IS the service charge itself
+      "type": "debit",
+      "category": "communication",  // Categorized as communication expense
+      "balance": 402.14,
+      "vat": 14.40,                // VAT on the SMS charge
+      "serviceFee": 0              // DO NOT duplicate - amount IS the service charge
     }
   ]
 }
@@ -257,6 +288,7 @@ CRITICAL REMINDERS:
 - Extract fee breakdown fields from the pre-grouped data
 - Use the BALANCE field for final balance (after all fees)
 - Use "debit" for money going out, "credit" for money coming in
+- **DO NOT duplicate service charges**: For SMS charges, account maintenance, monthly fees, etc., the amount IS the charge
 - DO NOT DAYDREAM or MAKE UP data - only extract what is clearly present
 `
 }
@@ -271,7 +303,7 @@ function validateAndNormalizeLLMResponse(parsed: LLMParseResult): LLMParseResult
   }
 
   // Normalize transactions
-  const transactions: ParsedTransaction[] = parsed.transactions.map((t: any) => {
+  const transactions: ParsedTransaction[] = parsed.transactions.map((t: ParsedTransaction) => {
     if (!t.date || !t.description || t.amount === undefined || !t.type) {
       console.warn('Skipping invalid transaction:', t)
       return null
@@ -296,6 +328,7 @@ function validateAndNormalizeLLMResponse(parsed: LLMParseResult): LLMParseResult
       amount,
       type: t.type === 'credit' ? 'credit' : 'debit',
       balance: t.balance ? Number(t.balance) : undefined,
+      category: t.category ? String(t.category).trim() : undefined,
       // Fee breakdown fields
       vat: vat > 0 ? vat : undefined,
       serviceFee: serviceFee > 0 ? serviceFee : undefined,

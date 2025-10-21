@@ -184,7 +184,7 @@ export async function getAllCategories() {
 }
 
 /**
- * Get categories as a formatted list for LLM prompt with examples
+ * Get categories as a formatted list for LLM prompt
  */
 export async function getCategoriesForLLMPrompt(): Promise<string> {
   const categories = await getAllCategories()
@@ -199,30 +199,18 @@ export async function getCategoriesForLLMPrompt(): Promise<string> {
 
   lines.push('**EXPENSE CATEGORIES (use for debits/money out):**')
   grouped.expense.forEach((cat) => {
-    const keywords = CATEGORY_KEYWORD_MAP[cat.value] || []
-    const examples = keywords.slice(0, 5).join(', ')
-    lines.push(`- value: "${cat.value}" | name: "${cat.name}" - ${cat.description || 'General expense category'}`)
-    if (examples) {
-      lines.push(`  Examples: ${examples}`)
-    }
+    lines.push(`- "${cat.name}": ${cat.description || 'General expense category'}`)
   })
 
   lines.push('\n**INCOME CATEGORIES (use for credits/money in):**')
   grouped.income.forEach((cat) => {
-    const keywords = CATEGORY_KEYWORD_MAP[cat.value] || []
-    const examples = keywords.slice(0, 5).join(', ')
-    lines.push(`- value: "${cat.value}" | name: "${cat.name}" - ${cat.description || 'General income category'}`)
-    if (examples) {
-      lines.push(`  Examples: ${examples}`)
-    }
+    lines.push(`- "${cat.name}": ${cat.description || 'General income category'}`)
   })
 
   lines.push('\n**FEE CATEGORIES (use for bank charges/fees):**')
   grouped.fee.forEach((cat) => {
-    lines.push(`- value: "${cat.value}" | name: "${cat.name}" - ${cat.description || 'Fee category'}`)
+    lines.push(`- "${cat.name}": ${cat.description || 'Fee category'}`)
   })
-
-  lines.push('\n**IMPORTANT**: Return the category VALUE (e.g., "food_groceries"), NOT the display name (e.g., "Food & Groceries").')
 
   return lines.join('\n')
 }
@@ -248,18 +236,18 @@ export async function matchDescriptionToCategory(
     },
   })
 
-  // Try to match keywords - use category VALUE as the key
-  for (const [categoryValue, keywords] of Object.entries(CATEGORY_KEYWORD_MAP)) {
-    // Check if this category value exists in DB
-    const category = categories.find(c => c.value === categoryValue)
+  // Try to match keywords
+  for (const [categoryName, keywords] of Object.entries(CATEGORY_KEYWORD_MAP)) {
+    // Check if this category exists in DB
+    const category = categories.find(c => c.name === categoryName)
     if (!category) {
       continue
     }
 
     // Check if any keyword matches
     for (const keyword of keywords) {
-      if (desc.includes(keyword.toLowerCase())) {
-        return category.value // Return the VALUE, not the name
+      if (desc.includes(keyword)) {
+        return category.name
       }
     }
   }
