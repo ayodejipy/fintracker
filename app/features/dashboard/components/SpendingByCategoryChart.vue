@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { getCategoryColor, getCategoryDisplayName } from '~/utils/categories'
 import { formatCurrency } from '~/utils/currency'
 
 interface CategoryExpense {
@@ -18,57 +17,72 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
+
+// Fetch custom categories for proper display
+const { categories, fetchCategories } = useCustomCategories()
+
+onMounted(async () => {
+  // Fetch both expense and fee categories since fees show in expense breakdown
+  await Promise.all([
+    fetchCategories('expense'),
+    fetchCategories('fee'),
+  ])
+})
+
+// Get category metadata from custom categories
+const getCategoryMetadata = (categoryValue: string) => {
+  const category = categories.value.find(c => c.value === categoryValue)
+  return {
+    name: category?.name || categoryValue,
+    icon: category?.icon || '📦',
+    color: category?.color || '#6B7280',
+    description: category?.description || 'Expense category',
+  }
+}
 
 // Get top 3 categories and others
 const categoryData = computed(() => {
-  if (!props.expenses?.byCategory) return { topCategories: [], others: 0, totalOthers: 0 }
-  
+  if (!props.expenses?.byCategory) {
+    return { topCategories: [], others: 0, totalOthers: 0 }
+  }
+
   const sorted = [...props.expenses.byCategory]
     .sort((a, b) => b.amount - a.amount)
-  
+
   const topCategories = sorted.slice(0, 3)
   const others = sorted.slice(3)
   const totalOthers = others.reduce((sum, cat) => sum + cat.amount, 0)
-  
+
   return {
     topCategories,
     others: others.length,
-    totalOthers
+    totalOthers,
   }
 })
 
 // Calculate trend comparison (mock for now - could be enhanced with historical data)
 const trendComparison = computed(() => {
-  if (!props.expenses?.byCategory.length) return null
-  
+  if (!props.expenses?.byCategory.length) {
+    return null
+  }
+
   // Mock trend data - in real implementation, this would come from API
   const topCategory = categoryData.value.topCategories[0]
-  if (!topCategory) return null
-  
+  if (!topCategory) {
+    return null
+  }
+
   const mockTrendPercentage = Math.floor(Math.random() * 40) - 20 // -20% to +20%
-  
+  const metadata = getCategoryMetadata(topCategory.category)
+
   return {
-    category: getCategoryDisplayName(topCategory.category as any),
+    category: metadata.name,
     change: mockTrendPercentage,
-    isIncrease: mockTrendPercentage > 0
+    isIncrease: mockTrendPercentage > 0,
   }
 })
-
-function getCategoryIcon(category: string): string {
-  const icons: Record<string, string> = {
-    loan_repayment: 'i-heroicons-credit-card',
-    home_allowance: 'i-heroicons-home',
-    rent: 'i-heroicons-building-office',
-    transport: 'i-heroicons-truck',
-    food: 'i-heroicons-shopping-bag',
-    data_airtime: 'i-heroicons-device-phone-mobile',
-    miscellaneous: 'i-heroicons-ellipsis-horizontal-circle',
-    savings: 'i-heroicons-banknotes',
-  }
-  return icons[category] || 'i-heroicons-currency-dollar'
-}
 </script>
 
 <template>
@@ -103,47 +117,43 @@ function getCategoryIcon(category: string): string {
           Top Categories This Month
         </h4>
         
-        <div v-for="(category, index) in categoryData.topCategories" :key="category.category" class="space-y-2">
+        <div v-for="(categoryItem, index) in categoryData.topCategories" :key="categoryItem.category" class="space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold text-gray-400 dark:text-gray-500 w-4">
                   {{ index + 1 }}
                 </span>
-                <div 
+                <div
                   class="w-8 h-8 rounded-lg flex items-center justify-center"
-                  :style="{ backgroundColor: `${getCategoryColor(category.category as any)}20` }"
+                  :style="{ backgroundColor: `${getCategoryMetadata(categoryItem.category).color}20` }"
                 >
-                  <UIcon 
-                    :name="getCategoryIcon(category.category)" 
-                    class="w-4 h-4"
-                    :style="{ color: getCategoryColor(category.category as any) }"
-                  />
+                  <span class="text-base">{{ getCategoryMetadata(categoryItem.category).icon }}</span>
                 </div>
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-900 dark:text-white">
-                  {{ getCategoryDisplayName(category.category as any) }}
+                  {{ getCategoryMetadata(categoryItem.category).name }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ Math.round(category.percentage) }}% of total spending
+                  {{ Math.round(categoryItem.percentage) }}% of total spending
                 </p>
               </div>
             </div>
             <div class="text-right">
               <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                {{ formatCurrency(category.amount) }}
+                {{ formatCurrency(categoryItem.amount) }}
               </p>
             </div>
           </div>
-          
+
           <!-- Progress bar -->
           <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
+            <div
               class="h-2 rounded-full transition-all duration-300"
-              :style="{ 
-                width: `${category.percentage}%`,
-                backgroundColor: getCategoryColor(category.category as any)
+              :style="{
+                width: `${categoryItem.percentage}%`,
+                backgroundColor: getCategoryMetadata(categoryItem.category).color,
               }"
             />
           </div>

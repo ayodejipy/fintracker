@@ -87,7 +87,8 @@ async function handleSubmit() {
         color: 'success',
       })
 
-      emit('saved', result.category.name)
+      // Emit the category value (not name) since transactions use the value field
+      emit('saved', result.category.value)
       emit('close')
     }
     else {
