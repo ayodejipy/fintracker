@@ -3,9 +3,9 @@ import { readMultipartFormData } from 'h3'
 import { getCategoriesForLLMPrompt } from '../../utils/categoryMapper'
 import { parseBankStatementWithLLM } from '../../utils/llmParser'
 import { extractPDFText, PDFPasswordRequiredError, validateBankStatementPDF } from '../../utils/pdfParser'
+import { cleanAndNormalizeBankStatement } from '../../utils/textCleaning'
 import { categorizeTransactions } from '../../utils/transactionCategorizerNew'
 import { getValidationSummary, validateTransactions } from '../../utils/transactionValidator'
-import { cleanAndNormalizeBankStatement } from '../../utils/textCleaning'
 
 /**
  * Upload and parse bank statement PDF

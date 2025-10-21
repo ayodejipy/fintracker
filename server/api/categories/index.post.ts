@@ -54,11 +54,20 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
       })
     }
 
+    // Generate value from name if not provided
+    const value = body.value || body.name
+      .replace(/[&,/\s]+/g, '_')
+      .replace(/[()]/g, '')
+      .toLowerCase()
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '')
+
     // Create the category
     const category = await prisma.category.create({
       data: {
         userId,
         name: body.name,
+        value,
         type: body.type,
         icon: body.icon,
         color: body.color,
@@ -73,6 +82,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
       id: category.id,
       userId: category.userId,
       name: category.name,
+      value: category.value,
       type: category.type as 'income' | 'expense' | 'fee',
       icon: category.icon || undefined,
       color: category.color || undefined,

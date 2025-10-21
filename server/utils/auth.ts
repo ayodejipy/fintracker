@@ -1,7 +1,9 @@
 import type { H3Event } from 'h3'
 import { deleteCookie, getCookie, getHeader, setCookie } from 'h3'
+import { PrismaClient } from '@prisma/client'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const prisma = new PrismaClient()
 
 // Dynamic import for jsonwebtoken to avoid CommonJS issues
 async function getJWT() {
@@ -32,6 +34,18 @@ export async function getUserSession(event: H3Event): Promise<UserSession | null
     const decoded = jwt.verify(token, JWT_SECRET) as any
 
     if (!decoded || !decoded.user) {
+      return null
+    }
+
+    // Verify user still exists in database
+    const userExists = await prisma.user.findUnique({
+      where: { id: decoded.user.id },
+      select: { id: true },
+    })
+
+    if (!userExists) {
+      // User was deleted from database, clear their session
+      clearAuthCookie(event)
       return null
     }
 

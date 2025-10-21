@@ -88,6 +88,7 @@ export default defineEventHandler(async (event): Promise<{ success: boolean, dat
       id: category.id,
       userId: category.userId,
       name: category.name,
+      value: category.value,
       type: category.type as 'income' | 'expense' | 'fee',
       icon: category.icon || undefined,
       color: category.color || undefined,

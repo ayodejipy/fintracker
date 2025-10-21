@@ -119,19 +119,25 @@ export default defineEventHandler(async (event) => {
     // Generate alerts
     const alerts: BudgetAnalysis['alerts'] = []
     categoryAnalysis.forEach((analysis) => {
+      const categoryLabel = analysis.category.split('_').map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
+
       if (analysis.status === 'over_budget') {
+        const overspent = Math.abs(analysis.remaining)
+        const percentOver = ((overspent / analysis.budgeted) * 100).toFixed(0)
         alerts.push({
           type: 'danger',
           category: analysis.category,
-          message: `You've exceeded your ${analysis.category} budget by ₦${Math.abs(analysis.remaining).toLocaleString()}`,
-          amount: Math.abs(analysis.remaining),
+          message: `${categoryLabel}: Exceeded budget by ₦${overspent.toLocaleString()} (${percentOver}% over). Spent ₦${analysis.spent.toLocaleString()} of ₦${analysis.budgeted.toLocaleString()} limit.`,
+          amount: overspent,
         })
       }
       else if (analysis.status === 'near_limit') {
+        const percentUsed = analysis.utilizationRate.toFixed(0)
         alerts.push({
           type: 'warning',
           category: analysis.category,
-          message: `You're approaching your ${analysis.category} budget limit (${analysis.utilizationRate.toFixed(1)}% used)`,
+          message: `${categoryLabel}: ${percentUsed}% of budget used. ₦${analysis.remaining.toLocaleString()} remaining of ₦${analysis.budgeted.toLocaleString()} limit.`,
           amount: analysis.remaining,
         })
       }

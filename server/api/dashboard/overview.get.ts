@@ -19,7 +19,10 @@ export default defineEventHandler(async (event) => {
 
     // Parse month to get start and end dates
     const startDate = new Date(`${month}-01`)
+    startDate.setHours(0, 0, 0, 0)
+
     const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
+    endDate.setHours(23, 59, 59, 999) // Include the entire last day of the month
 
     // Get transactions for the month
     const transactions = await prisma.transaction.findMany({
@@ -101,6 +104,14 @@ export default defineEventHandler(async (event) => {
         return acc
       }, {} as Record<string, number>)
 
+    // Calculate income breakdown by category
+    const incomeByCategory = transactions
+      .filter((t: any) => t.type.toLowerCase() === 'income')
+      .reduce((acc: Record<string, number>, t: any) => {
+        acc[t.category] = (acc[t.category] || 0) + Number(t.amount)
+        return acc
+      }, {} as Record<string, number>)
+
     // Calculate budget utilization
     const totalBudget = budgets.reduce((sum, b) => sum + Number(b.monthlyLimit), 0)
     const totalSpent = budgets.reduce((sum, b) => sum + Number(b.currentSpent), 0)
@@ -135,7 +146,10 @@ export default defineEventHandler(async (event) => {
       const trendMonth = trendDate.toISOString().slice(0, 7)
 
       const trendStartDate = new Date(`${trendMonth}-01`)
+      trendStartDate.setHours(0, 0, 0, 0)
+
       const trendEndDate = new Date(trendStartDate.getFullYear(), trendStartDate.getMonth() + 1, 0)
+      trendEndDate.setHours(23, 59, 59, 999) // Include the entire last day
 
       const monthTransactions = await prisma.transaction.findMany({
         where: {
@@ -238,6 +252,16 @@ export default defineEventHandler(async (event) => {
           category,
           amount,
           percentage: expenses > 0 ? (amount / expenses) * 100 : 0,
+        })),
+      },
+
+      // Income breakdown
+      income: {
+        total: income,
+        byCategory: Object.entries(incomeByCategory).map(([category, amount]) => ({
+          category,
+          amount,
+          percentage: income > 0 ? (amount / income) * 100 : 0,
         })),
       },
 
