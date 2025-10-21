@@ -169,18 +169,17 @@ onMounted(() => {
         <div class="flex gap-3">
           <UButton
             icon="i-heroicons-document-arrow-up"
-            size="lg"
+            size="md"
+            color="neutral"
             variant="outline"
-            class="border-1 border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 dark:bg-primary/50 hover:border-gray-400 font-medium px-2.5 py-3 rounded-lg shadow-sm"
             to="/import-statement"
           >
             Import Statement
           </UButton>
           <UButton
             icon="i-heroicons-plus"
-            size="lg"
-            variant="outline"
-            class="border-1 border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 dark:bg-primary/50 hover:border-gray-400 font-medium px-2.5 py-3 rounded-lg shadow-sm"
+            size="md"
+            color="primary"
             @click="handleAddTransaction"
           >
             Add Transaction
