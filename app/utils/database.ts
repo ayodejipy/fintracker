@@ -1,5 +1,7 @@
 import process from 'node:process'
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
 
 // Global Prisma client instance
 declare global {
@@ -9,9 +11,25 @@ declare global {
 // Create a singleton Prisma client (server-side only)
 const nodeEnv = typeof window === 'undefined' && typeof process !== 'undefined' ? process.env?.NODE_ENV : 'production'
 
-export const prisma = globalThis.__prisma || new PrismaClient({
-  log: nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
-})
+// Initialize Prisma with PostgreSQL adapter for edge runtime compatibility
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL
+
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is not defined')
+  }
+
+  // Use PrismaPg adapter for edge runtime compatibility (Cloudflare Workers)
+  const pool = new Pool({ connectionString })
+  const adapter = new PrismaPg(pool)
+
+  return new PrismaClient({
+    adapter,
+    log: nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  })
+}
+
+export const prisma = globalThis.__prisma || createPrismaClient()
 
 if (nodeEnv !== 'production') {
   globalThis.__prisma = prisma

@@ -31,6 +31,9 @@ export default defineNuxtConfig({
     alias: {
       '~/app': fileURLToPath(new URL('./app', import.meta.url)),
     },
+    experimental: {
+      wasm: true,
+    },
   },
 
   // CSS configuration
