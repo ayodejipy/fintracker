@@ -76,6 +76,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.5.2",
+    "@types/pg": "^8.15.5",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^18.0.1",
     "playwright": "^1.55.0",

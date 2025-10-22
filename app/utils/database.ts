@@ -11,7 +11,8 @@ declare global {
 // Create a singleton Prisma client (server-side only)
 const nodeEnv = typeof window === 'undefined' && typeof process !== 'undefined' ? process.env?.NODE_ENV : 'production'
 
-// Initialize Prisma with PostgreSQL adapter for edge runtime compatibility
+// Initialize Prisma with PostgreSQL adapter
+// This works for both edge runtimes (Cloudflare Workers) and Node.js (Netlify/Vercel)
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL
 
@@ -19,8 +20,16 @@ function createPrismaClient() {
     throw new Error('DATABASE_URL is not defined')
   }
 
-  // Use PrismaPg adapter for edge runtime compatibility (Cloudflare Workers)
-  const pool = new Pool({ connectionString })
+  // Use PrismaPg adapter with connection pooling
+  // This provides better performance and works across all platforms
+  const pool = new Pool({
+    connectionString,
+    // Configure connection pool for serverless
+    max: 1, // Limit connections in serverless environment
+    idleTimeoutMillis: 60000, // Close idle connections after 60s
+    connectionTimeoutMillis: 10000, // Fail fast if can't connect
+  })
+
   const adapter = new PrismaPg(pool)
 
   return new PrismaClient({

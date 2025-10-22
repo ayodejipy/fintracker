@@ -14,7 +14,6 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@nuxt/icon',
-    '@nuxthub/core',
   ],
 
   // Nuxt UI Configuration
@@ -28,11 +27,9 @@ export default defineNuxtConfig({
 
   // Nitro configuration for server-side aliases
   nitro: {
+    preset: 'netlify',
     alias: {
       '~/app': fileURLToPath(new URL('./app', import.meta.url)),
-    },
-    experimental: {
-      wasm: true,
     },
   },
 
