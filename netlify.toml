@@ -5,7 +5,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  NPM_FLAGS = "--legacy-peer-deps"
   # Prisma will use DATABASE_URL from environment variables
+  # Note: DIRECT_URL is only needed for migrations, not for builds
 
 [functions]
   directory = ".output/server"
@@ -17,6 +19,9 @@
     "node_modules/pg/**/*",
     "node_modules/@prisma/adapter-pg/**/*"
   ]
+  # Increase function timeout for database operations
+  [functions.server]
+    timeout = 30
 
 # Redirect all requests to Nuxt server function
 [[redirects]]

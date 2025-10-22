@@ -17,7 +17,12 @@ function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL
 
   if (!connectionString) {
-    throw new Error('DATABASE_URL is not defined')
+    // During build time, DATABASE_URL might not be available
+    // Return a client without adapter (it won't be used anyway)
+    console.warn('DATABASE_URL is not defined, creating Prisma client without adapter')
+    return new PrismaClient({
+      log: nodeEnv === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    })
   }
 
   // Use PrismaPg adapter with connection pooling
