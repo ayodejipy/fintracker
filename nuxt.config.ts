@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@nuxt/icon',
+    '@nuxthub/core',
   ],
 
   // Nuxt UI Configuration
@@ -30,6 +31,23 @@ export default defineNuxtConfig({
     alias: {
       '~/app': fileURLToPath(new URL('./app', import.meta.url)),
     },
+    experimental: {
+      wasm: true,
+    },
+    moduleSideEffects: ['@prisma/client/runtime/library.js'],
+    rollupConfig: {
+      external: ['@prisma/client'],
+      output: {
+        inlineDynamicImports: false,
+      },
+    },
+    publicAssets: [
+      {
+        baseURL: '/_prisma',
+        dir: '../node_modules/.prisma/client',
+        maxAge: 60 * 60 * 24 * 365,
+      },
+    ],
   },
 
   // CSS configuration
