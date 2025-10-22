@@ -1,10 +1,27 @@
 import type { ParsedTransaction } from '../../app/types'
-import { GoogleGenAI, Type } from '@google/genai'
-
 /**
  * LLM-based transaction parser
  * Uses AI to extract transactions from bank statement text
  */
+
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string
+        thought?: boolean
+      }>
+      role?: string
+    }
+    finishReason?: string
+    index?: number
+  }>
+  usageMetadata?: {
+    promptTokenCount?: number
+    candidatesTokenCount?: number
+    totalTokenCount?: number
+  }
+}
 
 interface LLMParseResult {
   transactions: ParsedTransaction[]
@@ -21,10 +38,10 @@ interface LLMParseResult {
  */
 export async function parseBankStatementWithLLM(text: string, categoriesPrompt?: string): Promise<LLMParseResult> {
   const config = useRuntimeConfig()
-  const apiKey = config.openaiApiKey || process.env.OPENAI_API_KEY
+  const apiKey = config.geminiApiKey || process.env.GEMINI_API_KEY
 
   if (!apiKey) {
-    throw new Error('OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.')
+    throw new Error('GEMINI API key not configured. Please set GEMINI_API_KEY environment variable.')
   }
 
   console.log('\n==================== LLM PARSER: START ====================')
@@ -37,90 +54,174 @@ export async function parseBankStatementWithLLM(text: string, categoriesPrompt?:
   const prompt = buildParsingPrompt(text, categoriesPrompt)
   console.log('[LLM Parser] Prompt built, sending to Gemini 2.5 Flash...')
 
-  const ai = new GoogleGenAI({})
+  // const ai = new GoogleGenAI({})
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        thinkingConfig: {
-          includeThoughts: true,
-        },
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              bankName: {
-                type: Type.STRING,
+    // const response = await ai.models.generateContent({
+    //   model: 'gemini-2.5-flash',
+    //   contents: prompt,
+    //   config: {
+    //     thinkingConfig: {
+    //       includeThoughts: true,
+    //     },
+    //     responseMimeType: 'application/json',
+    //     responseSchema: {
+    //       type: Type.ARRAY,
+    //       items: {
+    //         type: Type.OBJECT,
+    //         properties: {
+    //           bankName: {
+    //             type: Type.STRING,
+    //           },
+    //           accountNumber: {
+    //             type: Type.STRING,
+    //             nullable: true,
+    //           },
+    //           period: {
+    //             type: Type.OBJECT,
+    //             properties: {
+    //               from: { type: Type.STRING },
+    //               to: { type: Type.STRING },
+    //             },
+    //             required: ['from', 'to'],
+    //             nullable: true,
+    //           },
+    //           transactions: {
+    //             type: Type.ARRAY,
+    //             items: {
+    //               type: Type.OBJECT,
+    //               properties: {
+    //                 date: { type: Type.STRING },
+    //                 description: { type: Type.STRING },
+    //                 amount: { type: Type.NUMBER },
+    //                 type: { type: Type.STRING, enum: ['debit', 'credit'] },
+    //                 category: { type: Type.STRING, nullable: true }, // Category value (e.g., "food_groceries")
+    //                 balance: { type: Type.NUMBER, nullable: true },
+    //                 // Fee breakdown fields (all optional)
+    //                 vat: { type: Type.NUMBER, nullable: true },
+    //                 serviceFee: { type: Type.NUMBER, nullable: true },
+    //                 commission: { type: Type.NUMBER, nullable: true },
+    //                 stampDuty: { type: Type.NUMBER, nullable: true },
+    //                 transferFee: { type: Type.NUMBER, nullable: true },
+    //                 processingFee: { type: Type.NUMBER, nullable: true },
+    //                 otherFees: { type: Type.NUMBER, nullable: true },
+    //                 feeNote: { type: Type.STRING, nullable: true },
+    //               },
+    //               required: ['date', 'description', 'amount', 'type'],
+    //             },
+    //           },
+    //         },
+    //         propertyOrdering: ['bankName', 'accountNumber', 'period', 'transactions'],
+    //       },
+    //     },
+    //   },
+    // })
+
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': `${apiKey}`,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
               },
-              accountNumber: {
-                type: Type.STRING,
-                nullable: true,
-              },
-              period: {
-                type: Type.OBJECT,
-                properties: {
-                  from: { type: Type.STRING },
-                  to: { type: Type.STRING },
-                },
-                required: ['from', 'to'],
-                nullable: true,
-              },
-              transactions: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
+            ],
+          },
+        ],
+        generationConfig: {
+          thinkingConfig: {
+            includeThoughts: true,
+          },
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                bankName: { type: 'STRING' },
+                accountNumber: { type: 'STRING' },
+                period: {
+                  type: 'OBJECT',
                   properties: {
-                    date: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    amount: { type: Type.NUMBER },
-                    type: { type: Type.STRING, enum: ['debit', 'credit'] },
-                    category: { type: Type.STRING, nullable: true }, // Category value (e.g., "food_groceries")
-                    balance: { type: Type.NUMBER, nullable: true },
-                    // Fee breakdown fields (all optional)
-                    vat: { type: Type.NUMBER, nullable: true },
-                    serviceFee: { type: Type.NUMBER, nullable: true },
-                    commission: { type: Type.NUMBER, nullable: true },
-                    stampDuty: { type: Type.NUMBER, nullable: true },
-                    transferFee: { type: Type.NUMBER, nullable: true },
-                    processingFee: { type: Type.NUMBER, nullable: true },
-                    otherFees: { type: Type.NUMBER, nullable: true },
-                    feeNote: { type: Type.STRING, nullable: true },
+                    from: { type: 'STRING' },
+                    to: { type: 'STRING' },
                   },
-                  required: ['date', 'description', 'amount', 'type'],
+                  required: ['from', 'to'],
+                  nullable: true,
+                },
+                transactions: {
+                  type: 'ARRAY',
+                  items: {
+                    type: 'OBJECT',
+                    properties: {
+                      date: { type: 'STRING' },
+                      description: { type: 'STRING' },
+                      amount: { type: 'NUMBER' },
+                      type: { type: 'STRING' },
+                      category: { type: 'STRING' },
+                      balance: { type: 'NUMBER' },
+                      vat: { type: 'NUMBER' },
+                      serviceFee: { type: 'NUMBER' },
+                      commission: { type: 'NUMBER' },
+                      stampDuty: { type: 'NUMBER' },
+                      transferFee: { type: 'NUMBER' },
+                      processingFee: { type: 'NUMBER' },
+                      otherFees: { type: 'NUMBER' },
+                      feeNote: { type: 'STRING' },
+                    },
+                    required: ['date', 'description', 'amount', 'type', 'category'],
+                  },
                 },
               },
+              propertyOrdering: ['bankName', 'accountNumber', 'period', 'transactions'],
             },
-            propertyOrdering: ['bankName', 'accountNumber', 'period', 'transactions'],
           },
         },
-      },
+      }),
     })
 
-    console.log('[LLM Parser] ✅ Response received from Gemini')
-
-    if (response.promptFeedback?.blockReason) {
-      console.error('[LLM Parser] ❌ Request blocked:', response.promptFeedback.blockReason)
-      throw new Error(`Request was blocked due to: ${response.promptFeedback.blockReason}`)
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('[LLM Parser] ❌ Request blocked:', errorData.error?.message)
+      throw new Error(`Request was blocked due to: ${errorData.error?.message}`)
     }
 
-    const content = response.text
+    const data = await response.json() as GeminiResponse
+
+    console.log('[LLM Parser] ✅ Response received from Gemini', data)
+
+    // const content = responseData.
+    const candidate = data.candidates?.[0]
+    if (!candidate) {
+      console.error('[LLM Parser] ❌ No response content')
+      throw new Error('No candidate in response from LLM')
+    }
+
+    // if (!content) {
+    //   console.error('[LLM Parser] ❌ No response content')
+    //   throw new Error('No response from LLM')
+    // }
+
+    console.log('\n==================== LLM PARSER: RAW RESPONSE ====================')
+    console.log('[LLM Parser] Response length:', candidate.content?.parts?.length, 'characters')
+    console.log('[LLM Parser] Full response:')
+    console.log('---')
+    console.log(candidate.content)
+    console.log('---')
+
+    const parts = candidate.content?.parts || []
+    const returnedConversation = parts.filter(part => !part.thought)
+    const content = returnedConversation.find(part => part.text)?.text
 
     if (!content) {
       console.error('[LLM Parser] ❌ No response content')
       throw new Error('No response from LLM')
     }
-
-    console.log('\n==================== LLM PARSER: RAW RESPONSE ====================')
-    console.log('[LLM Parser] Response length:', content.length, 'characters')
-    console.log('[LLM Parser] Full response:')
-    console.log('---')
-    console.log(content)
-    console.log('---')
-
     const parsed = JSON.parse(content) as unknown as LLMParseResult[]
 
     console.log('[LLM Parser] ✅ Response parsed successfully')
@@ -134,31 +235,6 @@ export async function parseBankStatementWithLLM(text: string, categoriesPrompt?:
     console.log('[LLM Parser] Bank name:', validated.bankName)
     console.log('[LLM Parser] Account number:', validated.accountNumber || 'N/A')
     console.log('[LLM Parser] Period:', validated.period ? `${validated.period.from} to ${validated.period.to}` : 'N/A')
-
-    // Log sample transactions
-    if (validated.transactions.length > 0) {
-      console.log('\n[LLM Parser] Sample transactions (first 3):')
-      validated.transactions.slice(0, 3).forEach((txn, idx) => {
-        console.log(`\n  Transaction ${idx + 1}:`)
-        console.log(`    Date: ${txn.date}`)
-        console.log(`    Description: ${txn.description}`)
-        console.log(`    Amount: ${txn.amount} (main transaction)`)
-        console.log(`    Type: ${txn.type}`)
-        console.log(`    Balance: ${txn.balance || 'N/A'}`)
-        if (txn.commission || txn.vat || txn.stampDuty || txn.serviceFee || txn.transferFee || txn.processingFee || txn.otherFees) {
-          console.log('    Fees:', {
-            commission: txn.commission || 0,
-            vat: txn.vat || 0,
-            stampDuty: txn.stampDuty || 0,
-            serviceFee: txn.serviceFee || 0,
-            transferFee: txn.transferFee || 0,
-            processingFee: txn.processingFee || 0,
-            otherFees: txn.otherFees || 0,
-          })
-          console.log(`    TOTAL (amount + fees): ${txn.total}`)
-        }
-      })
-    }
 
     console.log('\n==================== LLM PARSER: END ====================\n')
 

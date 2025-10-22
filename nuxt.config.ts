@@ -30,9 +30,6 @@ export default defineNuxtConfig({
     alias: {
       '~/app': fileURLToPath(new URL('./app', import.meta.url)),
     },
-    externals: {
-      inline: ['@google/genai'],
-    },
   },
 
   // CSS configuration
@@ -52,7 +49,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,
-    openaiApiKey: process.env.OPENAI_API_KEY,
+    geminiApiKey: process.env.GEMINI_API_KEY,
     // Public keys (exposed to client-side)
     public: {
       appName: 'Personal Finance Dashboard',
