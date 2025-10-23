@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useDashboard } from '~/composables/useDashboard'
-import SpendingByCategoryChart from '~/features/dashboard/components/SpendingByCategoryChart.vue'
 import MonthSelector from '~/features/dashboard/components/MonthSelector.vue'
+import SpendingByCategoryChart from '~/features/dashboard/components/SpendingByCategoryChart.vue'
 import { formatCurrency } from '~/utils/currency'
 import { getCurrentMonth } from '~/utils/date'
 
@@ -24,16 +24,16 @@ const { dashboardData, loading } = useDashboard(selectedMonth)
 
 // Computed properties for expense insights
 const topExpenseCategory = computed(() => {
-  if (!dashboardData.value?.expenses?.byCategory.length) return null
+  if (!dashboardData.value?.expenses?.byCategory.length) { return null }
   return [...dashboardData.value.expenses.byCategory].sort((a, b) => b.amount - a.amount)[0]
 })
 
 const expenseGrowth = computed(() => {
-  if (!dashboardData.value?.trends || dashboardData.value.trends.length < 2) return null
+  if (!dashboardData.value?.trends || dashboardData.value.trends.length < 2) { return null }
   const currentMonth = dashboardData.value.trends[dashboardData.value.trends.length - 1]
   const previousMonth = dashboardData.value.trends[dashboardData.value.trends.length - 2]
 
-  if (!previousMonth.expenses || previousMonth.expenses === 0) return null
+  if (!previousMonth.expenses || previousMonth.expenses === 0) { return null }
 
   const growth = ((currentMonth.expenses - previousMonth.expenses) / previousMonth.expenses) * 100
   return {
@@ -44,9 +44,9 @@ const expenseGrowth = computed(() => {
 })
 
 const savingsRate = computed(() => {
-  if (!dashboardData.value?.currentMonth) return null
+  if (!dashboardData.value?.currentMonth) { return null }
   const { income, expenses } = dashboardData.value.currentMonth
-  if (!income || income === 0) return null
+  if (!income || income === 0) { return null }
 
   const saved = income - expenses
   const rate = (saved / income) * 100
@@ -69,7 +69,7 @@ onMounted(async () => {
   ])
 })
 
-const getCategoryMetadata = (categoryValue: string) => {
+function getCategoryMetadata(categoryValue: string) {
   const category = categories.value.find(c => c.value === categoryValue)
   return {
     name: category?.name || categoryValue,
@@ -173,7 +173,7 @@ const getCategoryMetadata = (categoryValue: string) => {
       <!-- Expense Breakdown Chart -->
       <SpendingByCategoryChart
         :expenses="dashboardData?.expenses"
-        :loading="loading"
+        :loading
       />
 
       <!-- Detailed Breakdown Table -->

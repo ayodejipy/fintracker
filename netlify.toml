@@ -1,11 +1,12 @@
 # Netlify configuration for Nuxt 4 with Prisma + Supabase
 [build]
-  command = "npm run build"
+  command = "npm run build 2>&1 | tee build.log; exit ${PIPESTATUS[0]}"
   publish = ".output/public"
 
 [build.environment]
   NODE_VERSION = "22"
   NPM_FLAGS = "--legacy-peer-deps"
+  NODE_OPTIONS = "--max-old-space-size=4096"
   # Prisma will use DATABASE_URL from environment variables
   # Note: DIRECT_URL is only needed for migrations, not for builds
 

@@ -241,8 +241,3 @@ export function quickClean(text: string): string {
  */
 export * from './bankFieldMappings'
 export * from './simpleTransactionGrouper'
-
-/**
- * Export types
- */
-export type { GroupedTransaction, RawTransactionRow }
