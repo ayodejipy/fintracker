@@ -27,7 +27,7 @@ export default defineNuxtConfig({
 
   // Nitro configuration for server-side aliases
   nitro: {
-    preset: 'netlify',
+    preset: 'vercel',
     alias: {
       '~/app': fileURLToPath(new URL('./app', import.meta.url)),
     },

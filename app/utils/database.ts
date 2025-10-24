@@ -12,7 +12,7 @@ declare global {
 const nodeEnv = typeof window === 'undefined' && typeof process !== 'undefined' ? process.env?.NODE_ENV : 'production'
 
 // Initialize Prisma with PostgreSQL adapter
-// This works for both edge runtimes (Cloudflare Workers) and Node.js (Netlify/Vercel)
+// This works for both edge runtimes (Cloudflare Workers) and Node.js (Vercel)
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL
 

@@ -1,6 +1,6 @@
 # Nuxt dev/build outputs
 .output
-.netlify
+.vercel
 .data
 .nuxt
 .nitro
@@ -61,3 +61,4 @@ docs/DATABASE_SETUP_SUMMARY.md
 docs/SUPABASE_SETUP.md
 DEPLOY.md
 docs/BANK_STATEMENT_PARSING.md
+VERCEL_DEPLOYMENT_QUICK_START.md
