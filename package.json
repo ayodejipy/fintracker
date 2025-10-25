@@ -36,6 +36,7 @@
     "db:status": "prisma migrate status"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
     "@nuxt/eslint": "^1.9.0",
     "@nuxt/icon": "^1.5.5",
     "@nuxt/image": "^1.11.0",
