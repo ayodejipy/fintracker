@@ -23,57 +23,75 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Find the PDF file and password
+    // Find the extracted text (client-side extraction) or PDF file (fallback)
+    const extractedTextField = formData.find(item => item.name === 'extractedText')
     const pdfFile = formData.find(item => item.name === 'statement' || item.filename?.endsWith('.pdf'))
     const passwordField = formData.find(item => item.name === 'password')
     const password = passwordField?.data?.toString('utf-8')
 
-    if (!pdfFile) {
-      throw createError({
-        statusCode: 400,
-        message: 'No PDF file found in upload',
-      })
-    }
-
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (pdfFile.data.length > maxSize) {
-      throw createError({
-        statusCode: 400,
-        message: 'File size exceeds 10MB limit',
-      })
-    }
-
-    // Validate file type
-    if (!pdfFile.filename?.toLowerCase().endsWith('.pdf')) {
-      throw createError({
-        statusCode: 400,
-        message: 'Only PDF files are allowed',
-      })
-    }
-
     // Step 1: Extract text from PDF
     let pdfText: string
 
-    try {
-      pdfText = await extractPDFText(pdfFile.data, password)
-    }
-    catch (error) {
-      console.error('PDF extraction error:', error)
+    // Check if client already extracted the text
+    if (extractedTextField && extractedTextField.data) {
+      console.log('[Upload] Using client-extracted PDF text')
+      pdfText = extractedTextField.data.toString('utf-8')
 
-      // Check if password is required
-      if (error instanceof PDFPasswordRequiredError) {
+      if (!pdfText || pdfText.trim().length === 0) {
         throw createError({
-          statusCode: 401,
-          statusMessage: 'PASSWORD_REQUIRED',
-          message: error.message,
+          statusCode: 422,
+          message: 'Extracted text is empty. Please try uploading the PDF again.',
+        })
+      }
+    }
+    else {
+      // Fallback: Extract on server if client didn't send text
+      console.log('[Upload] Client text not provided, extracting PDF on server (fallback)')
+
+      if (!pdfFile) {
+        throw createError({
+          statusCode: 400,
+          message: 'No PDF file or extracted text found in upload',
         })
       }
 
-      throw createError({
-        statusCode: 422,
-        message: 'Failed to read PDF. Please ensure it is a valid PDF file.',
-      })
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (pdfFile.data.length > maxSize) {
+        throw createError({
+          statusCode: 400,
+          message: 'File size exceeds 10MB limit',
+        })
+      }
+
+      // Validate file type
+      if (!pdfFile.filename?.toLowerCase().endsWith('.pdf')) {
+        throw createError({
+          statusCode: 400,
+          message: 'Only PDF files are allowed',
+        })
+      }
+
+      try {
+        pdfText = await extractPDFText(pdfFile.data, password)
+      }
+      catch (error) {
+        console.error('PDF extraction error:', error)
+
+        // Check if password is required
+        if (error instanceof PDFPasswordRequiredError) {
+          throw createError({
+            statusCode: 401,
+            statusMessage: 'PASSWORD_REQUIRED',
+            message: error.message,
+          })
+        }
+
+        throw createError({
+          statusCode: 422,
+          message: 'Failed to read PDF. Please ensure it is a valid PDF file.',
+        })
+      }
     }
 
     // Step 2: Validate it's actually a bank statement
