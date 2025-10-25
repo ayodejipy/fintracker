@@ -53,7 +53,19 @@ export default defineNuxtConfig({
     geminiApiKey: process.env.GEMINI_API_KEY,
     // Public keys (exposed to client-side)
     public: {
-      appName: 'Personal Finance Dashboard',
+      appName: process.env.NUXT_PUBLIC_APP_NAME || 'Personal Finance Dashboard',
+      appUrl: process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    },
+  },
+
+  app: {
+    head: {
+      title: 'FinSight - Personal Finance Dashboard',
+      meta: [
+
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      ],
     },
   },
 
