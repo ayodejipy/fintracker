@@ -11,9 +11,9 @@ interface Props {
 }
 
 interface Emits {
-  'saved': [transaction: Transaction]
-  'confirm': [transaction: Transaction]
-  'close': []
+  saved: [transaction: Transaction]
+  confirm: [transaction: Transaction]
+  close: []
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -212,7 +212,7 @@ watch(() => state.value.type, () => {
 </script>
 
 <template>
-  <UModal :open="true" :close="true" :dismissible="true" @close="$emit('close')" :ui="{ footer: 'justify-end' }">
+  <UModal :open="true" :close="true" :dismissible="true" :ui="{ footer: 'justify-end' }" @close="$emit('close')">
     <template #header>
       <div class="flex items-center justify-between flex-1 py-3">
         <div class="flex items-center gap-3">
@@ -305,7 +305,9 @@ watch(() => state.value.type, () => {
         <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 space-y-3">
           <div class="flex items-center gap-2">
             <UIcon name="i-heroicons-receipt-percent" class="w-5 h-5 text-amber-600 dark:text-amber-400" />
-            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">Fee Breakdown (Optional)</h4>
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white">
+              Fee Breakdown (Optional)
+            </h4>
           </div>
           <p class="text-xs text-gray-600 dark:text-gray-400">
             Break down fees and charges included in the transaction amount
@@ -461,8 +463,8 @@ watch(() => state.value.type, () => {
         <div v-if="state.type === 'expense'" class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4 space-y-3">
           <div class="flex items-center space-x-3">
             <UCheckbox
-              v-model="state.isRecurring"
               id="isRecurring"
+              v-model="state.isRecurring"
             />
             <label for="isRecurring" class="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
               <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -472,7 +474,7 @@ watch(() => state.value.type, () => {
           <p class="text-xs text-purple-600 dark:text-purple-400 ml-6">
             This will create a recurring expense that automatically tracks future payments
           </p>
-          
+
           <!-- Recurring frequency (shown when recurring is enabled) -->
           <div v-if="state.isRecurring" class="ml-6 space-y-3">
             <div class="grid grid-cols-2 gap-3">
@@ -485,7 +487,7 @@ watch(() => state.value.type, () => {
                   :options="[
                     { value: 'weekly', label: 'Weekly' },
                     { value: 'monthly', label: 'Monthly' },
-                    { value: 'yearly', label: 'Yearly' }
+                    { value: 'yearly', label: 'Yearly' },
                   ]"
                   size="sm"
                 />

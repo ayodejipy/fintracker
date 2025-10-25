@@ -227,7 +227,7 @@ export function usePerformanceMonitoring() {
     // Temporarily disable performance monitoring to debug errors
     console.warn('Performance monitoring temporarily disabled to debug recurring errors')
     return
-    
+
     updateMetrics()
     updateSystemMetrics()
     updateAlerts()

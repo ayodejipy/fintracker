@@ -10,13 +10,13 @@ const createRecurringExpenseSchema = z.object({
   amount: z.number().positive('Amount must be positive'),
   category: z.enum([
     'loan_repayment',
-    'home_allowance', 
+    'home_allowance',
     'rent',
     'transport',
     'food',
     'data_airtime',
     'miscellaneous',
-    'savings'
+    'savings',
   ]),
   frequency: z.enum(['weekly', 'monthly', 'yearly']),
   nextDueDate: z.string().datetime(),

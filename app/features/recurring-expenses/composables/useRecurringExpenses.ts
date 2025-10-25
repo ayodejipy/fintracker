@@ -1,8 +1,8 @@
-import type { 
-  RecurringExpense, 
-  CreateRecurringExpenseInput, 
+import type {
+  CreateRecurringExpenseInput,
+  RecurringExpense,
+  RecurringExpenseSummary,
   UpdateRecurringExpenseInput,
-  RecurringExpenseSummary 
 } from '~/types'
 
 export function useRecurringExpenses() {
@@ -118,7 +118,7 @@ export function useRecurringExpenses() {
   // Mark as paid (update last paid date and calculate next due date)
   async function markAsPaid(id: string) {
     const expense = recurringExpenses.value.find(e => e.id === id)
-    if (!expense) return
+    if (!expense) { return }
 
     const today = new Date()
     let nextDueDate = new Date(expense.nextDueDate)
@@ -158,8 +158,8 @@ export function useRecurringExpenses() {
   }
 
   // Computed properties
-  const activeExpenses = computed(() => 
-    recurringExpenses.value.filter(expense => expense.isActive)
+  const activeExpenses = computed(() =>
+    recurringExpenses.value.filter(expense => expense.isActive),
   )
 
   const upcomingExpenses = computed(() => {
@@ -168,11 +168,11 @@ export function useRecurringExpenses() {
 
     return activeExpenses.value
       .filter(expense => new Date(expense.nextDueDate) <= thirtyDaysFromNow)
-      .map(expense => {
+      .map((expense) => {
         const dueDate = new Date(expense.nextDueDate)
         const today = new Date()
         const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-        
+
         return {
           ...expense,
           daysUntilDue,

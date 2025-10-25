@@ -3,42 +3,42 @@ import { categorizeError, logError } from '~/utils/error-handling'
 export default defineNuxtPlugin((nuxtApp) => {
   // Initialize error handler once at plugin level
   const { showErrorToast } = useErrorHandler()
-  
+
   // Enhanced error tracking to debug recurring errors
   const errorCounts = new Map<string, number>()
   const MAX_ERROR_COUNT = 3
-  
+
   // Prevent infinite loops by tracking recent errors
   const recentErrors = new Set<string>()
   const ERROR_COOLDOWN = 5000 // 5 seconds
-  
+
   const shouldShowError = (errorKey: string): boolean => {
     // Track error counts
     const count = errorCounts.get(errorKey) || 0
     errorCounts.set(errorKey, count + 1)
-    
+
     // Log recurring errors for debugging
     if (count > 0) {
       console.error(`Recurring error detected (${count + 1}x):`, errorKey)
     }
-    
+
     // Stop showing errors after max count
     if (count >= MAX_ERROR_COUNT) {
       console.error(`Error suppressed after ${MAX_ERROR_COUNT} occurrences:`, errorKey)
       return false
     }
-    
+
     if (recentErrors.has(errorKey)) {
       return false
     }
-    
+
     recentErrors.add(errorKey)
     setTimeout(() => {
       recentErrors.delete(errorKey)
       // Reset error count after cooldown
       errorCounts.delete(errorKey)
     }, ERROR_COOLDOWN)
-    
+
     return true
   }
 

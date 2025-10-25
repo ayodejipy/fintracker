@@ -39,19 +39,32 @@ export function useStatementUpload() {
       const extractionResult = await extractTextFromPDF(file, password)
 
       if (!extractionResult.success) {
-        // Check if password is required
+        // Check if password is required or incorrect
         if (extractionResult.requiresPassword) {
           passwordRequired.value = true
           error.value = extractionResult.error || 'This PDF is password protected'
+
+          // Keep the upload state visible so user can retry with correct password
+          uploadProgress.value = 0
+          uploadStatus.value = ''
+
           return {
             success: false,
             error: extractionResult.error,
           }
         }
 
-        // If extraction fails, fall back to server-side processing
-        console.warn('[Upload] Client-side extraction failed, falling back to server')
-        return await uploadStatementFallback(file, password)
+        // Extraction failed - return error (no server fallback)
+        error.value = extractionResult.error || 'Failed to extract text from PDF'
+
+        // Reset progress
+        uploadProgress.value = 0
+        uploadStatus.value = ''
+
+        return {
+          success: false,
+          error: error.value,
+        }
       }
 
       // Step 2: Validate extracted text
@@ -149,91 +162,6 @@ export function useStatementUpload() {
     }
     finally {
       uploading.value = false
-    }
-  }
-
-  /**
-   * Fallback: Upload PDF to server for server-side extraction
-   * Used when client-side extraction fails
-   */
-  async function uploadStatementFallback(
-    file: File,
-    password?: string,
-  ): Promise<{ success: boolean, data?: BankStatementParseResult, error?: string }> {
-    try {
-      uploadStatus.value = 'Uploading PDF to server...'
-      uploadProgress.value = 20
-
-      const formData = new FormData()
-      formData.append('statement', file)
-
-      if (password) {
-        formData.append('password', password)
-      }
-
-      const response = await $fetch<{
-        success: boolean
-        data: BankStatementParseResult
-        message: string
-      }>('/api/statements/upload', {
-        method: 'POST',
-        body: formData,
-        onRequest() {
-          uploadStatus.value = 'Extracting PDF on server...'
-          uploadProgress.value = 40
-        },
-        onResponse() {
-          uploadStatus.value = 'Processing with AI...'
-          uploadProgress.value = 70
-        },
-      })
-
-      if (response.success) {
-        uploadProgress.value = 90
-        uploadStatus.value = 'Finalizing...'
-
-        await new Promise(resolve => setTimeout(resolve, 300))
-
-        uploadProgress.value = 100
-        uploadStatus.value = 'Complete! Review your transactions below.'
-
-        await new Promise(resolve => setTimeout(resolve, 500))
-
-        return {
-          success: true,
-          data: response.data,
-        }
-      }
-
-      return {
-        success: false,
-        error: response.message || 'Failed to parse statement',
-      }
-    }
-    catch (err: any) {
-      console.error('Fallback upload error:', err)
-
-      uploadProgress.value = 0
-      uploadStatus.value = ''
-
-      if (err.statusCode === 401 && err.statusMessage === 'PASSWORD_REQUIRED') {
-        passwordRequired.value = true
-        const errorMessage = err.data?.message || 'This PDF is password protected'
-        error.value = errorMessage
-
-        return {
-          success: false,
-          error: errorMessage,
-        }
-      }
-
-      const errorMessage = err.data?.message || err.message || 'Failed to parse statement'
-      error.value = errorMessage
-
-      return {
-        success: false,
-        error: errorMessage,
-      }
     }
   }
 

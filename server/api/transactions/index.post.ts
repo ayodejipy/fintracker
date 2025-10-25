@@ -26,7 +26,7 @@ export default defineEventHandler(asyncHandler(async (event) => {
       // Calculate next due date based on frequency
       const currentDate = new Date(validatedData.date)
       const nextDueDate = new Date(currentDate)
-      
+
       switch (validatedData.recurringFrequency) {
         case 'weekly':
           nextDueDate.setDate(nextDueDate.getDate() + 7)
@@ -53,7 +53,7 @@ export default defineEventHandler(asyncHandler(async (event) => {
           autoCreateTransaction: true,
         },
       })
-      
+
       recurringExpenseId = recurringExpense.id
     }
 

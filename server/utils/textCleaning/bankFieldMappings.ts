@@ -249,10 +249,10 @@ export const BANK_DETECTION_PATTERNS: Record<string, string[]> = {
  */
 export const CLEANUP_SYMBOLS = [
   // Duplicate/excessive delimiters
-  /\|\|+/g, // Multiple pipes
-  /--+/g, // Multiple dashes
-  /==+/g, // Multiple equals
-  /__+/g, // Multiple underscores
+  /\|{2,}/g, // Multiple pipes
+  /-{2,}/g, // Multiple dashes
+  /={2,}/g, // Multiple equals
+  /_{2,}/g, // Multiple underscores
 
   // Excessive whitespace (but preserve structure)
   /[ \t]{3,}/g, // 3+ spaces/tabs → single space

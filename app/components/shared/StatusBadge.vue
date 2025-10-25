@@ -1,9 +1,3 @@
-<template>
-  <UBadge :color="badgeColor" variant="subtle" :size="size">
-    <slot>{{ displayText }}</slot>
-  </UBadge>
-</template>
-
 <script setup lang="ts">
 /**
  * Reusable status badge component
@@ -66,3 +60,9 @@ const displayText = computed(() => {
   return ''
 })
 </script>
+
+<template>
+  <UBadge :color="badgeColor" variant="subtle" :size="size">
+    <slot>{{ displayText }}</slot>
+  </UBadge>
+</template>

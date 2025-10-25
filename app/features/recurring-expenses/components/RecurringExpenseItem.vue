@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { RecurringExpense } from '~/types'
+import { computed } from 'vue'
+import { getCategoryColor, getCategoryDisplayName } from '~/utils/categories'
 import { formatCurrency } from '~/utils/currency'
 import { formatDate } from '~/utils/date'
-import { getCategoryColor, getCategoryDisplayName } from '~/utils/categories'
 
 interface Props {
   expense: RecurringExpense
@@ -30,16 +30,16 @@ const isOverdue = computed(() => daysUntilDue.value < 0)
 const isDueSoon = computed(() => daysUntilDue.value >= 0 && daysUntilDue.value <= props.expense.reminderDays)
 
 const statusColor = computed(() => {
-  if (!props.expense.isActive) return 'gray'
-  if (isOverdue.value) return 'red'
-  if (isDueSoon.value) return 'yellow'
+  if (!props.expense.isActive) { return 'gray' }
+  if (isOverdue.value) { return 'red' }
+  if (isDueSoon.value) { return 'yellow' }
   return 'green'
 })
 
 const statusText = computed(() => {
-  if (!props.expense.isActive) return 'Inactive'
-  if (isOverdue.value) return `Overdue by ${Math.abs(daysUntilDue.value)} days`
-  if (isDueSoon.value) return `Due in ${daysUntilDue.value} days`
+  if (!props.expense.isActive) { return 'Inactive' }
+  if (isOverdue.value) { return `Overdue by ${Math.abs(daysUntilDue.value)} days` }
+  if (isDueSoon.value) { return `Due in ${daysUntilDue.value} days` }
   return `Due in ${daysUntilDue.value} days`
 })
 
@@ -127,7 +127,7 @@ const actionItems = computed(() => [
               Inactive
             </UBadge>
           </div>
-          
+
           <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
             <span class="flex items-center gap-1">
               <UIcon name="i-heroicons-tag" class="w-3 h-3" />

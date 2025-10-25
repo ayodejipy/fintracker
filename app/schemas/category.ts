@@ -10,7 +10,7 @@ export const categorySchema = z.object({
   }).min(1, 'Category name is required').max(100, 'Category name must be less than 100 characters'),
   type: categoryTypeEnum,
   icon: z.string().max(10).optional(),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a valid hex color').optional(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Color must be a valid hex color').optional(),
   description: z.string().max(500, 'Description must be less than 500 characters').optional(),
   sortOrder: z.number().int().nonnegative().optional(),
 })
@@ -22,7 +22,7 @@ export const createCategorySchema = categorySchema
 export const updateCategorySchema = z.object({
   name: z.string().min(1).max(100).optional(),
   icon: z.string().max(10).optional(),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i).optional(),
   description: z.string().max(500).optional(),
   sortOrder: z.number().int().nonnegative().optional(),
   isActive: z.boolean().optional(),

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRecurringExpenses } from '../composables/useRecurringExpenses'
 import type { RecurringExpenseSummary } from '~/types'
+import { onMounted, ref } from 'vue'
 import { formatCurrency } from '~/utils/currency'
+import { useRecurringExpenses } from '../composables/useRecurringExpenses'
 
 interface Props {
   totalMonthlyCommitments: number
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
 
 // Composables
@@ -40,8 +40,8 @@ const disposableIncomeImpact = computed(() => {
   // This would ideally come from user's monthly income
   // For now, we'll show the percentage impact assuming a typical income
   const assumedMonthlyIncome = 500000 // ₦500k - could be fetched from user profile
-  return props.totalMonthlyCommitments > 0 
-    ? (props.totalMonthlyCommitments / assumedMonthlyIncome) * 100 
+  return props.totalMonthlyCommitments > 0
+    ? (props.totalMonthlyCommitments / assumedMonthlyIncome) * 100
     : 0
 })
 </script>
@@ -109,7 +109,7 @@ const disposableIncomeImpact = computed(() => {
         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
           Spending Breakdown
         </h4>
-        
+
         <div class="space-y-2">
           <!-- Recurring -->
           <div class="flex items-center justify-between">
@@ -119,12 +119,12 @@ const disposableIncomeImpact = computed(() => {
             </span>
           </div>
           <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
+            <div
               class="bg-blue-500 h-2 rounded-full transition-all duration-300"
               :style="{ width: `${summary.recurringVsNonRecurring.recurringPercentage}%` }"
             />
           </div>
-          
+
           <!-- Non-Recurring -->
           <div class="flex items-center justify-between">
             <span class="text-sm text-gray-600 dark:text-gray-400">Non-Recurring</span>
@@ -133,7 +133,7 @@ const disposableIncomeImpact = computed(() => {
             </span>
           </div>
           <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
+            <div
               class="bg-purple-500 h-2 rounded-full transition-all duration-300"
               :style="{ width: `${100 - summary.recurringVsNonRecurring.recurringPercentage}%` }"
             />
@@ -159,7 +159,7 @@ const disposableIncomeImpact = computed(() => {
               Financial Insight
             </h5>
             <p class="text-sm text-yellow-700 dark:text-yellow-400">
-              Your recurring expenses represent a significant portion of your monthly budget. 
+              Your recurring expenses represent a significant portion of your monthly budget.
               Consider reviewing these commitments regularly to optimize your cash flow.
             </p>
           </div>

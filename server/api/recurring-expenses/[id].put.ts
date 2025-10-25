@@ -10,13 +10,13 @@ const updateRecurringExpenseSchema = z.object({
   amount: z.number().positive('Amount must be positive').optional(),
   category: z.enum([
     'loan_repayment',
-    'home_allowance', 
+    'home_allowance',
     'rent',
     'transport',
     'food',
     'data_airtime',
     'miscellaneous',
-    'savings'
+    'savings',
   ]).optional(),
   frequency: z.enum(['weekly', 'monthly', 'yearly']).optional(),
   nextDueDate: z.string().datetime().optional(),
@@ -69,15 +69,15 @@ export default defineEventHandler(async (event) => {
 
     // Prepare update data
     const updateData: any = {}
-    if (validatedData.name !== undefined) updateData.name = validatedData.name
-    if (validatedData.amount !== undefined) updateData.amount = validatedData.amount
-    if (validatedData.category !== undefined) updateData.category = validatedData.category
-    if (validatedData.frequency !== undefined) updateData.frequency = validatedData.frequency
-    if (validatedData.nextDueDate !== undefined) updateData.nextDueDate = new Date(validatedData.nextDueDate)
-    if (validatedData.description !== undefined) updateData.description = validatedData.description
-    if (validatedData.reminderDays !== undefined) updateData.reminderDays = validatedData.reminderDays
-    if (validatedData.autoCreateTransaction !== undefined) updateData.autoCreateTransaction = validatedData.autoCreateTransaction
-    if (validatedData.isActive !== undefined) updateData.isActive = validatedData.isActive
+    if (validatedData.name !== undefined) { updateData.name = validatedData.name }
+    if (validatedData.amount !== undefined) { updateData.amount = validatedData.amount }
+    if (validatedData.category !== undefined) { updateData.category = validatedData.category }
+    if (validatedData.frequency !== undefined) { updateData.frequency = validatedData.frequency }
+    if (validatedData.nextDueDate !== undefined) { updateData.nextDueDate = new Date(validatedData.nextDueDate) }
+    if (validatedData.description !== undefined) { updateData.description = validatedData.description }
+    if (validatedData.reminderDays !== undefined) { updateData.reminderDays = validatedData.reminderDays }
+    if (validatedData.autoCreateTransaction !== undefined) { updateData.autoCreateTransaction = validatedData.autoCreateTransaction }
+    if (validatedData.isActive !== undefined) { updateData.isActive = validatedData.isActive }
 
     // Update recurring expense
     const updatedExpense = await prisma.recurringExpense.update({

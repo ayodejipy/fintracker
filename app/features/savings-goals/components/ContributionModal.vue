@@ -130,16 +130,28 @@ const willComplete = computed(() => {
         <div class="bg-gray-50 dark:bg-gray-700/50 dark:bg-gray-800 p-4 rounded-lg">
           <div class="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500">Current</p>
-              <p class="font-semibold text-green-600">{{ formatCurrency(goal.currentAmount) }}</p>
+              <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                Current
+              </p>
+              <p class="font-semibold text-green-600">
+                {{ formatCurrency(goal.currentAmount) }}
+              </p>
             </div>
             <div>
-              <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500">Target</p>
-              <p class="font-semibold text-gray-900 dark:text-white dark:text-white">{{ formatCurrency(goal.targetAmount) }}</p>
+              <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                Target
+              </p>
+              <p class="font-semibold text-gray-900 dark:text-white dark:text-white">
+                {{ formatCurrency(goal.targetAmount) }}
+              </p>
             </div>
             <div>
-              <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500">Remaining</p>
-              <p class="font-semibold text-blue-600">{{ formatCurrency(remainingAmount) }}</p>
+              <p class="text-gray-600 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500">
+                Remaining
+              </p>
+              <p class="font-semibold text-blue-600">
+                {{ formatCurrency(remainingAmount) }}
+              </p>
             </div>
           </div>
         </div>

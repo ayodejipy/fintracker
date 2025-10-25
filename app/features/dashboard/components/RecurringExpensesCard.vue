@@ -1,24 +1,24 @@
 <script setup lang="ts">
+import type { RecurringExpense } from '~/types'
 import { onMounted, ref } from 'vue'
 import { useRecurringExpenses } from '~/features/recurring-expenses/composables/useRecurringExpenses'
-import type { RecurringExpense } from '~/types'
-import { formatCurrency } from '~/utils/currency'
 import { getCategoryColor, getCategoryDisplayName } from '~/utils/categories'
+import { formatCurrency } from '~/utils/currency'
 
 interface Props {
   loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
 
 // Composables
-const { 
-  fetchRecurringExpenses, 
-  upcomingExpenses, 
+const {
+  fetchRecurringExpenses,
+  upcomingExpenses,
   totalMonthlyCommitments,
-  overdueExpenses 
+  overdueExpenses,
 } = useRecurringExpenses()
 
 // Local state
@@ -43,16 +43,16 @@ const isLoading = computed(() => props.loading || localLoading.value)
 
 const nextThreeExpenses = computed(() => {
   const all = [...overdueExpenses.value, ...upcomingExpenses.value]
-  return all.slice(0, 3).map(expense => {
+  return all.slice(0, 3).map((expense) => {
     const dueDate = new Date(expense.nextDueDate)
     const today = new Date()
     const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-    
+
     return {
       ...expense,
       daysUntilDue,
       isOverdue: daysUntilDue < 0,
-      isDueSoon: daysUntilDue >= 0 && daysUntilDue <= 3
+      isDueSoon: daysUntilDue >= 0 && daysUntilDue <= 3,
     }
   })
 })
@@ -89,7 +89,7 @@ function getCategoryIcon(category: string): string {
           </p>
         </div>
       </div>
-      
+
       <NuxtLink to="/recurring-expenses">
         <UButton variant="ghost" size="sm" icon="i-heroicons-arrow-right">
           View All
@@ -150,14 +150,16 @@ function getCategoryIcon(category: string): string {
                 <p class="text-sm font-medium text-gray-900 dark:text-white">
                   {{ expense.name }}
                 </p>
-                <p class="text-xs" :class="{
-                  'text-red-600 dark:text-red-400': expense.isOverdue,
-                  'text-yellow-600 dark:text-yellow-400': expense.isDueSoon,
-                  'text-gray-500 dark:text-gray-400': !expense.isOverdue && !expense.isDueSoon
-                }">
-                  {{ expense.isOverdue 
+                <p
+                  class="text-xs" :class="{
+                    'text-red-600 dark:text-red-400': expense.isOverdue,
+                    'text-yellow-600 dark:text-yellow-400': expense.isDueSoon,
+                    'text-gray-500 dark:text-gray-400': !expense.isOverdue && !expense.isDueSoon,
+                  }"
+                >
+                  {{ expense.isOverdue
                     ? `Overdue by ${Math.abs(expense.daysUntilDue)} days`
-                    : expense.daysUntilDue === 0 
+                    : expense.daysUntilDue === 0
                       ? 'Due today'
                       : expense.daysUntilDue === 1
                         ? 'Due tomorrow'
@@ -198,7 +200,9 @@ function getCategoryIcon(category: string): string {
           <p class="text-lg font-bold text-red-600 dark:text-red-400">
             {{ overdueExpenses.length }}
           </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Overdue</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Overdue
+          </p>
         </div>
         <div class="text-center">
           <p class="text-lg font-bold text-yellow-600 dark:text-yellow-400">
@@ -207,7 +211,9 @@ function getCategoryIcon(category: string): string {
               return daysUntilDue <= 7
             }).length }}
           </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">This Week</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            This Week
+          </p>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import { type Component, type Raw, defineAsyncComponent, markRaw, readonly, ref } from 'vue'
+import type { Component, Raw } from 'vue'
+import { defineAsyncComponent, markRaw, readonly, ref } from 'vue'
 
 interface ModalConfig {
   component: Raw<Component>
@@ -102,7 +103,7 @@ export async function openConfirmation(config: {
 
     // Lazy load the ConfirmationModal component
     const ConfirmationModal = defineAsyncComponent(() =>
-      import('~/components/ui/ConfirmationModal.vue')
+      import('~/components/ui/ConfirmationModal.vue'),
     )
 
     open({
@@ -134,7 +135,7 @@ export function openModal<T = any>(
     open({
       component: markRaw(component),
       props,
-      onConfirm: (data) => resolve(data),
+      onConfirm: data => resolve(data),
       onClose: () => resolve(null),
     })
   })

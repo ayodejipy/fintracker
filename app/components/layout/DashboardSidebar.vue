@@ -102,9 +102,8 @@ onUnmounted(() => {
       'w-0 -translate-x-full': isCollapsed && isMobile,
     }"
   >
-  
-  <!-- Logo Section -->
-  <div class="px-4 py-5 border-b border-gray-200/50 dark:border-gray-800/50">
+    <!-- Logo Section -->
+    <div class="px-4 py-5 border-b border-gray-200/50 dark:border-gray-800/50">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -156,8 +155,12 @@ onUnmounted(() => {
             <UIcon name="i-heroicons-arrow-up-tray" class="w-5 h-5" />
           </div>
           <div class="flex-1">
-            <div class="font-semibold text-sm">Import Statement</div>
-            <div class="text-xs text-white/80">Upload bank statements</div>
+            <div class="font-semibold text-sm">
+              Import Statement
+            </div>
+            <div class="text-xs text-white/80">
+              Upload bank statements
+            </div>
           </div>
           <UIcon name="i-heroicons-arrow-right" class="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
         </div>
@@ -212,7 +215,7 @@ onUnmounted(() => {
               class="w-4 h-4 flex-shrink-0 transition-all duration-200"
               :class="{
                 'text-white': item.active,
-                'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white group-hover:scale-110': !item.active
+                'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white group-hover:scale-110': !item.active,
               }"
             />
           </div>
@@ -267,7 +270,7 @@ onUnmounted(() => {
             class="w-4 h-4 flex-shrink-0 transition-all duration-200"
             :class="{
               'text-white': item.active,
-              'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white group-hover:scale-110': !item.active
+              'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white group-hover:scale-110': !item.active,
             }"
           />
         </div>
@@ -285,7 +288,6 @@ onUnmounted(() => {
           {{ item.name }}
         </div>
       </NuxtLink>
-
     </div>
   </div>
 </template>

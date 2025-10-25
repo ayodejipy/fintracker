@@ -22,34 +22,34 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
 
 // Calculate projections and insights
 const monthlyInsights = computed(() => {
-  if (!props.currentMonth || !props.monthlyTrends?.length) return null
-  
+  if (!props.currentMonth || !props.monthlyTrends?.length) { return null }
+
   const current = props.currentMonth
   const trends = props.monthlyTrends
-  
+
   // Calculate average from trends
   const avgIncome = trends.reduce((sum, t) => sum + t.income, 0) / trends.length
   const avgExpenses = trends.reduce((sum, t) => sum + t.expenses, 0) / trends.length
-  
+
   // Calculate month-to-date projection (assuming we're partway through month)
   const today = new Date()
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
   const daysPassed = today.getDate()
   const projectionMultiplier = daysInMonth / daysPassed
-  
+
   const projectedIncome = current.income * projectionMultiplier
   const projectedExpenses = current.expenses * projectionMultiplier
   const projectedSavings = projectedIncome - projectedExpenses
-  
+
   // Calculate trends
   const incomeChange = avgIncome > 0 ? ((current.income - avgIncome) / avgIncome) * 100 : 0
   const expenseChange = avgExpenses > 0 ? ((current.expenses - avgExpenses) / avgExpenses) * 100 : 0
-  
+
   return {
     projectedIncome,
     projectedExpenses,
@@ -60,39 +60,42 @@ const monthlyInsights = computed(() => {
     isExpenseUp: expenseChange > 0,
     savingsRate: projectedIncome > 0 ? (projectedSavings / projectedIncome) * 100 : 0,
     daysPassed,
-    daysRemaining: daysInMonth - daysPassed
+    daysRemaining: daysInMonth - daysPassed,
   }
 })
 
 // Status based on financial health
 const financialStatus = computed(() => {
-  if (!props.currentMonth) return { status: 'neutral', message: 'No data available' }
-  
+  if (!props.currentMonth) { return { status: 'neutral', message: 'No data available' } }
+
   const { netIncome, cashFlow } = props.currentMonth
-  
+
   if (cashFlow > 0 && netIncome > 0) {
-    return { 
-      status: 'excellent', 
+    return {
+      status: 'excellent',
       message: 'Great job! You\'re saving money and staying within budget.',
-      color: 'green'
+      color: 'green',
     }
-  } else if (netIncome > 0 && cashFlow >= 0) {
-    return { 
-      status: 'good', 
+  }
+  else if (netIncome > 0 && cashFlow >= 0) {
+    return {
+      status: 'good',
       message: 'You\'re earning more than you spend. Consider increasing savings.',
-      color: 'blue'
+      color: 'blue',
     }
-  } else if (netIncome >= 0) {
-    return { 
-      status: 'warning', 
+  }
+  else if (netIncome >= 0) {
+    return {
+      status: 'warning',
       message: 'Income covers expenses, but watch your commitments.',
-      color: 'yellow'
+      color: 'yellow',
     }
-  } else {
-    return { 
-      status: 'danger', 
+  }
+  else {
+    return {
+      status: 'danger',
       message: 'Expenses exceed income. Review your spending.',
-      color: 'red'
+      color: 'red',
     }
   }
 })
@@ -138,8 +141,8 @@ const financialStatus = computed(() => {
             {{ formatCurrency(currentMonth.income) }}
           </p>
           <div v-if="monthlyInsights" class="flex items-center gap-1 mt-1">
-            <UIcon 
-              :name="monthlyInsights.isIncomeUp ? 'i-heroicons-arrow-up' : 'i-heroicons-arrow-down'" 
+            <UIcon
+              :name="monthlyInsights.isIncomeUp ? 'i-heroicons-arrow-up' : 'i-heroicons-arrow-down'"
               class="w-3 h-3"
               :class="monthlyInsights.isIncomeUp ? 'text-green-600' : 'text-red-600'"
             />
@@ -161,8 +164,8 @@ const financialStatus = computed(() => {
             {{ formatCurrency(currentMonth.expenses) }}
           </p>
           <div v-if="monthlyInsights" class="flex items-center gap-1 mt-1">
-            <UIcon 
-              :name="monthlyInsights.isExpenseUp ? 'i-heroicons-arrow-up' : 'i-heroicons-arrow-down'" 
+            <UIcon
+              :name="monthlyInsights.isExpenseUp ? 'i-heroicons-arrow-up' : 'i-heroicons-arrow-down'"
               class="w-3 h-3"
               :class="monthlyInsights.isExpenseUp ? 'text-red-600' : 'text-green-600'"
             />
@@ -204,22 +207,28 @@ const financialStatus = computed(() => {
             </p>
           </div>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div class="text-center">
-            <p class="text-xs text-purple-600 dark:text-purple-400 mb-1">Projected Income</p>
+            <p class="text-xs text-purple-600 dark:text-purple-400 mb-1">
+              Projected Income
+            </p>
             <p class="text-lg font-semibold text-purple-900 dark:text-purple-100">
               {{ formatCurrency(monthlyInsights.projectedIncome) }}
             </p>
           </div>
           <div class="text-center">
-            <p class="text-xs text-purple-600 dark:text-purple-400 mb-1">Projected Expenses</p>
+            <p class="text-xs text-purple-600 dark:text-purple-400 mb-1">
+              Projected Expenses
+            </p>
             <p class="text-lg font-semibold text-purple-900 dark:text-purple-100">
               {{ formatCurrency(monthlyInsights.projectedExpenses) }}
             </p>
           </div>
           <div class="text-center">
-            <p class="text-xs text-purple-600 dark:text-purple-400 mb-1">Projected Savings</p>
+            <p class="text-xs text-purple-600 dark:text-purple-400 mb-1">
+              Projected Savings
+            </p>
             <p class="text-lg font-semibold" :class="monthlyInsights.projectedSavings >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
               {{ formatCurrency(monthlyInsights.projectedSavings) }}
             </p>
@@ -235,7 +244,7 @@ const financialStatus = computed(() => {
             </span>
           </div>
           <div class="w-full bg-purple-200 dark:bg-purple-700 rounded-full h-2 mt-2">
-            <div 
+            <div
               class="h-2 rounded-full transition-all duration-300"
               :class="monthlyInsights.savingsRate >= 20 ? 'bg-green-500' : monthlyInsights.savingsRate >= 10 ? 'bg-yellow-500' : 'bg-red-500'"
               :style="{ width: `${Math.min(Math.max(monthlyInsights.savingsRate, 0), 100)}%` }"
@@ -245,55 +254,57 @@ const financialStatus = computed(() => {
       </div>
 
       <!-- Financial Status -->
-      <div class="rounded-lg p-4" :class="{
-        'bg-green-50 dark:bg-green-900/20': financialStatus.color === 'green',
-        'bg-blue-50 dark:bg-blue-900/20': financialStatus.color === 'blue',
-        'bg-yellow-50 dark:bg-yellow-900/20': financialStatus.color === 'yellow',
-        'bg-red-50 dark:bg-red-900/20': financialStatus.color === 'red'
-      }">
+      <div
+        class="rounded-lg p-4" :class="{
+          'bg-green-50 dark:bg-green-900/20': financialStatus.color === 'green',
+          'bg-blue-50 dark:bg-blue-900/20': financialStatus.color === 'blue',
+          'bg-yellow-50 dark:bg-yellow-900/20': financialStatus.color === 'yellow',
+          'bg-red-50 dark:bg-red-900/20': financialStatus.color === 'red',
+        }"
+      >
         <div class="flex items-start gap-3">
-          <div 
-            class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" 
+          <div
+            class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
             :class="{
               'bg-green-100 dark:bg-green-800': financialStatus.color === 'green',
               'bg-blue-100 dark:bg-blue-800': financialStatus.color === 'blue',
               'bg-yellow-100 dark:bg-yellow-800': financialStatus.color === 'yellow',
-              'bg-red-100 dark:bg-red-800': financialStatus.color === 'red'
+              'bg-red-100 dark:bg-red-800': financialStatus.color === 'red',
             }"
           >
-            <UIcon 
-              :name="financialStatus.color === 'green' ? 'i-heroicons-check-circle' 
+            <UIcon
+              :name="financialStatus.color === 'green' ? 'i-heroicons-check-circle'
                 : financialStatus.color === 'blue' ? 'i-heroicons-information-circle'
-                : financialStatus.color === 'yellow' ? 'i-heroicons-exclamation-triangle'
-                : 'i-heroicons-x-circle'" 
-              class="w-4 h-4" 
+                  : financialStatus.color === 'yellow' ? 'i-heroicons-exclamation-triangle'
+                    : 'i-heroicons-x-circle'"
+              class="w-4 h-4"
               :class="{
                 'text-green-600 dark:text-green-400': financialStatus.color === 'green',
                 'text-blue-600 dark:text-blue-400': financialStatus.color === 'blue',
                 'text-yellow-600 dark:text-yellow-400': financialStatus.color === 'yellow',
-                'text-red-600 dark:text-red-400': financialStatus.color === 'red'
+                'text-red-600 dark:text-red-400': financialStatus.color === 'red',
               }"
             />
           </div>
           <div>
-            <h5 
-              class="text-sm font-medium mb-1" 
+            <h5
+              class="text-sm font-medium mb-1"
               :class="{
                 'text-green-900 dark:text-green-300': financialStatus.color === 'green',
                 'text-blue-900 dark:text-blue-300': financialStatus.color === 'blue',
                 'text-yellow-900 dark:text-yellow-300': financialStatus.color === 'yellow',
-                'text-red-900 dark:text-red-300': financialStatus.color === 'red'
+                'text-red-900 dark:text-red-300': financialStatus.color === 'red',
               }"
             >
               Financial Health
             </h5>
-            <p 
-              class="text-sm" 
+            <p
+              class="text-sm"
               :class="{
                 'text-green-700 dark:text-green-400': financialStatus.color === 'green',
                 'text-blue-700 dark:text-blue-400': financialStatus.color === 'blue',
                 'text-yellow-700 dark:text-yellow-400': financialStatus.color === 'yellow',
-                'text-red-700 dark:text-red-400': financialStatus.color === 'red'
+                'text-red-700 dark:text-red-400': financialStatus.color === 'red',
               }"
             >
               {{ financialStatus.message }}

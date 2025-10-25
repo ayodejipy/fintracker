@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CustomCategory } from '~/types'
-import { useCustomCategories } from '~/composables/useCustomCategories'
 import AddCategoryModal from '~/components/AddCategoryModal.vue'
+import { useCustomCategories } from '~/composables/useCustomCategories'
 
 definePageMeta({
   middleware: 'auth',
@@ -28,8 +28,8 @@ const filteredCategories = computed(() => {
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(c =>
-      c.name.toLowerCase().includes(query) ||
-      c.description?.toLowerCase().includes(query),
+      c.name.toLowerCase().includes(query)
+      || c.description?.toLowerCase().includes(query),
     )
   }
 
@@ -147,8 +147,12 @@ onMounted(() => {
 
       <div v-else-if="expenseCategories.length === 0" class="text-center py-8">
         <UIcon name="i-heroicons-folder-open" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
-        <p class="text-gray-500 dark:text-gray-400">No expense categories yet</p>
-        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Create your first custom category</p>
+        <p class="text-gray-500 dark:text-gray-400">
+          No expense categories yet
+        </p>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+          Create your first custom category
+        </p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -160,7 +164,7 @@ onMounted(() => {
           <div class="flex items-center gap-3 flex-1">
             <div
               class="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-              :style="{ backgroundColor: category.color + '20', color: category.color }"
+              :style="{ backgroundColor: `${category.color}20`, color: category.color }"
             >
               {{ category.icon || '📁' }}
             </div>
@@ -214,8 +218,12 @@ onMounted(() => {
 
       <div v-else-if="incomeCategories.length === 0" class="text-center py-8">
         <UIcon name="i-heroicons-folder-open" class="w-12 h-12 text-gray-400 mx-auto mb-3" />
-        <p class="text-gray-500 dark:text-gray-400">No income categories yet</p>
-        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Create your first custom category</p>
+        <p class="text-gray-500 dark:text-gray-400">
+          No income categories yet
+        </p>
+        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
+          Create your first custom category
+        </p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -227,7 +235,7 @@ onMounted(() => {
           <div class="flex items-center gap-3 flex-1">
             <div
               class="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-              :style="{ backgroundColor: category.color + '20', color: category.color }"
+              :style="{ backgroundColor: `${category.color}20`, color: category.color }"
             >
               {{ category.icon || '📁' }}
             </div>

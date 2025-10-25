@@ -7,8 +7,8 @@ interface Props {
 }
 
 interface Emits {
-  'close': []
-  'saved': [categoryName: string]
+  close: []
+  saved: [categoryName: string]
 }
 
 const props = defineProps<Props>()

@@ -13,8 +13,7 @@ export function useTransactionDelete() {
       icon: 'i-heroicons-trash',
     })
 
-    if (!confirmed)
-      return false
+    if (!confirmed) { return false }
 
     try {
       await $fetch(`/api/transactions/${transaction.id}`, {

@@ -1,6 +1,6 @@
 import type { H3Event } from 'h3'
-import { deleteCookie, getCookie, getHeader, setCookie } from 'h3'
 import { PrismaClient } from '@prisma/client'
+import { deleteCookie, getCookie, getHeader, setCookie } from 'h3'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const prisma = new PrismaClient()

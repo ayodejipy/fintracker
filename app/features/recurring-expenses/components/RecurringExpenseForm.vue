@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import type { ExpenseCategory, RecurringExpense, RecurringFrequency } from '~/types'
 import { computed, ref, watch } from 'vue'
-import { useRecurringExpenses } from '../composables/useRecurringExpenses'
-import type { RecurringExpense, RecurringFrequency, ExpenseCategory } from '~/types'
 import { getCategoryDisplayName } from '~/utils/categories'
 import { formatCurrency } from '~/utils/currency'
+import { useRecurringExpenses } from '../composables/useRecurringExpenses'
 
 interface Props {
   expense?: RecurringExpense | null
@@ -47,23 +47,23 @@ const categoryOptions = [
 ]
 
 const frequencyOptions = [
-  { 
-    value: 'weekly', 
+  {
+    value: 'weekly',
     label: 'Weekly',
     description: 'Every 7 days',
-    icon: 'i-heroicons-calendar-days'
+    icon: 'i-heroicons-calendar-days',
   },
-  { 
-    value: 'monthly', 
+  {
+    value: 'monthly',
     label: 'Monthly',
     description: 'Every month',
-    icon: 'i-heroicons-calendar'
+    icon: 'i-heroicons-calendar',
   },
-  { 
-    value: 'yearly', 
+  {
+    value: 'yearly',
     label: 'Yearly',
     description: 'Every 12 months',
-    icon: 'i-heroicons-calendar-date-range'
+    icon: 'i-heroicons-calendar-date-range',
   },
 ]
 
@@ -84,11 +84,12 @@ watch(() => props.expense, (expense) => {
       reminderDays: expense.reminderDays,
       autoCreateTransaction: expense.autoCreateTransaction,
     }
-  } else {
+  }
+  else {
     // Reset form for new expense
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
-    
+
     form.value = {
       name: '',
       amount: 0,
@@ -117,7 +118,8 @@ function validateForm() {
 
   if (!form.value.nextDueDate) {
     errors.value.nextDueDate = 'Next due date is required'
-  } else {
+  }
+  else {
     const dueDate = new Date(form.value.nextDueDate)
     const today = new Date()
     if (dueDate < today) {
@@ -134,7 +136,7 @@ function validateForm() {
 
 // Submit handler
 async function handleSubmit() {
-  if (!validateForm()) return
+  if (!validateForm()) { return }
 
   try {
     loading.value = true
@@ -153,7 +155,8 @@ async function handleSubmit() {
     let result
     if (isEditing.value && props.expense) {
       result = await updateRecurringExpense(props.expense.id, data)
-    } else {
+    }
+    else {
       result = await createRecurringExpense(data)
     }
 
@@ -181,7 +184,7 @@ function handleCancel() {
 </script>
 
 <template>
-  <UModal :open="true" :close="true" :dismissible="true" @close="$emit('close')" :ui="{ width: 'sm:max-w-2xl' }">
+  <UModal :open="true" :close="true" :dismissible="true" :ui="{ width: 'sm:max-w-2xl' }" @close="$emit('close')">
     <template #header>
       <div class="flex items-center gap-4 py-4">
         <div class="relative">
@@ -211,7 +214,9 @@ function handleCancel() {
             <div class="size-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
               <UIcon name="i-heroicons-information-circle" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
-            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h4>
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Basic Information
+            </h4>
           </div>
 
           <!-- Expense Name -->
@@ -282,7 +287,9 @@ function handleCancel() {
             <div class="size-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
               <UIcon name="i-heroicons-calendar-days" class="w-4 h-4 text-green-600 dark:text-green-400" />
             </div>
-            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Scheduling</h4>
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Scheduling
+            </h4>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -337,7 +344,9 @@ function handleCancel() {
             <div class="size-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
               <UIcon name="i-heroicons-cog-6-tooth" class="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
-            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Advanced Options</h4>
+            <h4 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Advanced Options
+            </h4>
           </div>
 
           <!-- Description -->
@@ -396,8 +405,12 @@ function handleCancel() {
               <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
                 <div class="flex items-center justify-between">
                   <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">Auto-create Transaction</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Automatically create transaction when due</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                      Auto-create Transaction
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Automatically create transaction when due
+                    </p>
                   </div>
                   <UToggle
                     v-model="form.autoCreateTransaction"
@@ -408,7 +421,6 @@ function handleCancel() {
             </div>
           </div>
         </div>
-
       </div>
     </template>
 
@@ -432,9 +444,9 @@ function handleCancel() {
             type="button"
             variant="ghost"
             size="lg"
-            @click="handleCancel"
             :disabled="loading"
             :ui="{ rounded: 'rounded-xl' }"
+            @click="handleCancel"
           >
             Cancel
           </UButton>
@@ -443,15 +455,15 @@ function handleCancel() {
             size="lg"
             :loading="loading"
             :disabled="loading || !form.name || !form.amount || !form.category"
-            @click="handleSubmit"
-            :ui="{ 
+            :ui="{
               rounded: 'rounded-xl',
               color: {
                 primary: {
-                  solid: 'shadow-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:ring-purple-500 text-white'
-                }
-              }
+                  solid: 'shadow-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:ring-purple-500 text-white',
+                },
+              },
             }"
+            @click="handleSubmit"
           >
             <template #leading>
               <UIcon :name="isEditing ? 'i-heroicons-check' : 'i-heroicons-plus'" class="w-5 h-5" />

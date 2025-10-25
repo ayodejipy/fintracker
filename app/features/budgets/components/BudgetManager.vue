@@ -101,7 +101,7 @@ async function handleDelete(budget: Budget) {
     icon: 'i-heroicons-trash',
   })
 
-  if (!confirmed) return
+  if (!confirmed) { return }
 
   try {
     const success = await deleteBudget(budget.id)

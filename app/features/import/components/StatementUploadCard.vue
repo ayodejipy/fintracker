@@ -8,7 +8,7 @@ interface Props {
   passwordRequired?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   uploading: false,
   error: null,
   passwordRequired: false,
@@ -32,8 +32,7 @@ function handleFileChange() {
 
 // Handle upload
 function handleUpload() {
-  if (!uploadedFile.value)
-    return
+  if (!uploadedFile.value) { return }
 
   emit('upload', uploadedFile.value, password.value || undefined)
 }
@@ -58,10 +57,21 @@ function handleUpload() {
       <!-- Password Input (shown when password is required) -->
       <div v-if="passwordRequired && uploadedFile" class="mt-6">
         <UAlert
+          v-if="!error || !error.includes('Incorrect')"
           color="warning"
           variant="subtle"
           title="Password Required"
           description="This PDF is password protected. Please enter the password to continue."
+          class="mb-4"
+        />
+
+        <!-- Show error alert for incorrect password -->
+        <UAlert
+          v-else
+          color="error"
+          variant="subtle"
+          title="Incorrect Password"
+          :description="error"
           class="mb-4"
         />
 
@@ -73,6 +83,7 @@ function handleUpload() {
             size="lg"
             icon="i-heroicons-lock-closed"
             class="flex-1"
+            :status="error?.includes('Incorrect') ? 'error' : undefined"
             @keyup.enter="handleUpload"
           />
           <UButton

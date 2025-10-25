@@ -32,7 +32,7 @@ onMounted(async () => {
 })
 
 // Get category metadata from custom categories
-const getCategoryMetadata = (categoryValue: string) => {
+function getCategoryMetadata(categoryValue: string) {
   const category = categories.value.find(c => c.value === categoryValue)
   return {
     name: category?.name || categoryValue,
@@ -116,7 +116,7 @@ const trendComparison = computed(() => {
         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           Top Categories This Month
         </h4>
-        
+
         <div v-for="(categoryItem, index) in categoryData.topCategories" :key="categoryItem.category" class="space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -200,7 +200,7 @@ const trendComparison = computed(() => {
               Spending Insight
             </h5>
             <p class="text-sm text-blue-700 dark:text-blue-400">
-              You spent 
+              You spent
               <span :class="trendComparison.isIncrease ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
                 {{ Math.abs(trendComparison.change) }}% {{ trendComparison.isIncrease ? 'more' : 'less' }}
               </span>

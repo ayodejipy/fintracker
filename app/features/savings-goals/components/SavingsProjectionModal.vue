@@ -69,7 +69,7 @@ const displayedProjection = computed(() => {
     contribution: month.contribution,
     endingBalance: month.projectedAmount,
     progressPercentage: (month.projectedAmount / props.goal.targetAmount) * 100,
-    isComplete: month.isComplete
+    isComplete: month.isComplete,
   })) || []
 
   if (showFullProjection.value) {
@@ -348,4 +348,3 @@ onMounted(() => {
     </template>
   </UModal>
 </template>
-

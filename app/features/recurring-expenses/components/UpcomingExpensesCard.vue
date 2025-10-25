@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRecurringExpenses } from '../composables/useRecurringExpenses'
 import type { RecurringExpense } from '~/types'
+import { onMounted, ref } from 'vue'
+import { getCategoryColor, getCategoryDisplayName } from '~/utils/categories'
 import { formatCurrency } from '~/utils/currency'
 import { formatDate } from '~/utils/date'
-import { getCategoryColor, getCategoryDisplayName } from '~/utils/categories'
+import { useRecurringExpenses } from '../composables/useRecurringExpenses'
 
 interface Props {
   loading?: boolean
@@ -15,7 +15,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  loading: false
+  loading: false,
 })
 
 const emit = defineEmits<Emits>()
@@ -51,15 +51,15 @@ function getCategoryIcon(category: string): string {
 }
 
 function getStatusColor(daysUntilDue: number) {
-  if (daysUntilDue < 0) return 'red'
-  if (daysUntilDue <= 3) return 'yellow'
+  if (daysUntilDue < 0) { return 'red' }
+  if (daysUntilDue <= 3) { return 'yellow' }
   return 'green'
 }
 
 function getStatusText(daysUntilDue: number) {
-  if (daysUntilDue < 0) return `Overdue by ${Math.abs(daysUntilDue)} days`
-  if (daysUntilDue === 0) return 'Due today'
-  if (daysUntilDue === 1) return 'Due tomorrow'
+  if (daysUntilDue < 0) { return `Overdue by ${Math.abs(daysUntilDue)} days` }
+  if (daysUntilDue === 0) { return 'Due today' }
+  if (daysUntilDue === 1) { return 'Due tomorrow' }
   return `Due in ${daysUntilDue} days`
 }
 </script>
@@ -81,10 +81,12 @@ function getStatusText(daysUntilDue: number) {
           </p>
         </div>
       </div>
-      
+
       <!-- Total Amount -->
       <div class="text-right">
-        <p class="text-sm text-gray-500 dark:text-gray-400">Total Due</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Total Due
+        </p>
         <p class="text-xl font-bold text-gray-900 dark:text-white">
           {{ formatCurrency(totalUpcoming) }}
         </p>
@@ -144,7 +146,7 @@ function getStatusText(daysUntilDue: number) {
               {{ formatCurrency(expense.amount) }}
             </p>
           </div>
-          
+
           <!-- Mark as Paid Button -->
           <UButton
             icon="i-heroicons-check-circle"
@@ -187,13 +189,17 @@ function getStatusText(daysUntilDue: number) {
           <p class="text-2xl font-bold text-red-600 dark:text-red-400">
             {{ overdueExpenses.length }}
           </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Overdue</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Overdue
+          </p>
         </div>
         <div>
           <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
             {{ upcomingExpenses.filter(e => e.daysUntilDue <= 7).length }}
           </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Due This Week</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Due This Week
+          </p>
         </div>
       </div>
     </div>

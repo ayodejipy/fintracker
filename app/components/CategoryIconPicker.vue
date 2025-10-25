@@ -156,7 +156,9 @@ function selectIcon(icon: string) {
     <div v-if="selectedIcon" class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
       <span class="text-3xl">{{ selectedIcon }}</span>
       <div class="flex-1">
-        <p class="text-sm font-medium text-gray-900 dark:text-white">Selected Icon</p>
+        <p class="text-sm font-medium text-gray-900 dark:text-white">
+          Selected Icon
+        </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           {{ iconOptions.find(o => o.icon === selectedIcon)?.label }}
         </p>

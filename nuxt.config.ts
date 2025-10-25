@@ -14,6 +14,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@nuxt/icon',
+    '@nuxtjs/supabase',
   ],
 
   // Nuxt UI Configuration

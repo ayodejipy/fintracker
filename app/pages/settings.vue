@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import CurrencySettings from '~/features/settings/components/CurrencySettings.vue'
+import DataSettings from '~/features/settings/components/DataSettings.vue'
+import NotificationPreferences from '~/features/settings/components/NotificationPreferences.vue'
 import ProfileSettings from '~/features/settings/components/ProfileSettings.vue'
 import SecuritySettings from '~/features/settings/components/SecuritySettings.vue'
 import ThemePreferences from '~/features/settings/components/ThemeSettings.vue'
-import NotificationPreferences from '~/features/settings/components/NotificationPreferences.vue'
-import CurrencySettings from '~/features/settings/components/CurrencySettings.vue'
-import DataSettings from '~/features/settings/components/DataSettings.vue'
 
 definePageMeta({
   middleware: 'auth',

@@ -53,11 +53,19 @@ export function usePDFExtractor() {
       console.error('PDF extraction error:', error)
 
       // Check if it's a password-related error
-      if (error.message?.includes('password') || error.message?.includes('encrypted') || error.message?.includes('No password given')) {
-        extractionError.value = 'This PDF is password protected'
+      const errorMsg = error.message || ''
+      const isPasswordError = errorMsg.includes('password') || errorMsg.includes('encrypted') || errorMsg.includes('No password given')
+      const isIncorrectPassword = password && (errorMsg.includes('incorrect') || errorMsg.includes('invalid') || errorMsg.includes('wrong'))
+
+      if (isPasswordError || isIncorrectPassword) {
+        const errorMessage = isIncorrectPassword
+          ? 'Incorrect password. Please try again.'
+          : 'This PDF is password protected. Please provide the password.'
+
+        extractionError.value = errorMessage
         return {
           success: false,
-          error: 'This PDF is password protected. Please provide the password.',
+          error: errorMessage,
           requiresPassword: true,
         }
       }

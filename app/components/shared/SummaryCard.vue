@@ -1,14 +1,3 @@
-<template>
-  <div :class="cardClasses">
-    <p :class="labelClasses">
-      {{ label }}
-    </p>
-    <p :class="valueClasses">
-      <slot>{{ value }}</slot>
-    </p>
-  </div>
-</template>
-
 <script setup lang="ts">
 /**
  * Reusable summary/stat card component
@@ -71,3 +60,14 @@ const valueClasses = computed(() => {
   return variants[props.variant]
 })
 </script>
+
+<template>
+  <div :class="cardClasses">
+    <p :class="labelClasses">
+      {{ label }}
+    </p>
+    <p :class="valueClasses">
+      <slot>{{ value }}</slot>
+    </p>
+  </div>
+</template>

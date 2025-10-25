@@ -22,15 +22,15 @@ export interface Transaction {
   recurringExpenseId?: string
 
   // Fee breakdown fields for transparency
-  vat?: number             // VAT/Tax amount (e.g., 7.5% in Nigeria)
-  serviceFee?: number      // Restaurant/hotel service charges
-  commission?: number      // Bank/payment processor commissions
-  stampDuty?: number       // Nigerian stamp duty on transfers (₦50 for >₦10,000)
-  transferFee?: number     // Inter-bank transfer fees
-  processingFee?: number   // Payment processing charges
-  otherFees?: number       // Any other miscellaneous fees
-  feeNote?: string         // Optional note about fees
-  total?: number           // Total amount (amount + all fees) - what was actually debited/credited
+  vat?: number // VAT/Tax amount (e.g., 7.5% in Nigeria)
+  serviceFee?: number // Restaurant/hotel service charges
+  commission?: number // Bank/payment processor commissions
+  stampDuty?: number // Nigerian stamp duty on transfers (₦50 for >₦10,000)
+  transferFee?: number // Inter-bank transfer fees
+  processingFee?: number // Payment processing charges
+  otherFees?: number // Any other miscellaneous fees
+  feeNote?: string // Optional note about fees
+  total?: number // Total amount (amount + all fees) - what was actually debited/credited
 
   // Import and review workflow fields
   isImported?: boolean
@@ -86,14 +86,14 @@ export interface SavingsGoal {
 
 export interface CustomCategory {
   id: string
-  userId: string | null  // null = system category
+  userId: string | null // null = system category
   name: string
-  value: string  // Database value (e.g., "food_groceries", "transportation")
+  value: string // Database value (e.g., "food_groceries", "transportation")
   type: 'income' | 'expense' | 'fee'
   icon?: string
   color?: string
   description?: string
-  isSystem: boolean  // true = default/system category
+  isSystem: boolean // true = default/system category
   isActive: boolean
   sortOrder: number
   createdAt: Date
@@ -280,7 +280,7 @@ export interface CreateSavingsGoalInput {
 
 export interface CreateCustomCategoryInput {
   name: string
-  value: string  // Must be unique per user and type
+  value: string // Must be unique per user and type
   type: 'income' | 'expense' | 'fee'
   icon?: string
   color?: string
@@ -415,7 +415,7 @@ export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>
 
 // Fee calculation helper type
 export interface TransactionFeeBreakdown {
-  baseAmount: number           // Amount before fees
+  baseAmount: number // Amount before fees
   vat: number
   serviceFee: number
   commission: number
@@ -423,8 +423,8 @@ export interface TransactionFeeBreakdown {
   transferFee: number
   processingFee: number
   otherFees: number
-  totalFees: number            // Sum of all fees
-  totalAmount: number          // Base + all fees (should equal transaction.amount)
+  totalFees: number // Sum of all fees
+  totalAmount: number // Base + all fees (should equal transaction.amount)
 }
 
 // Date utility types
@@ -613,13 +613,13 @@ export interface ParsedTransaction {
   total?: number
 }
 
-export type TransactionFlag =
-  | 'NO_DESCRIPTION'
-  | 'GENERIC_DESCRIPTION'
-  | 'ONLY_NUMBERS'
-  | 'AMBIGUOUS'
-  | 'UNUSUAL_AMOUNT'
-  | 'DUPLICATE_SUSPECTED'
+export type TransactionFlag
+  = | 'NO_DESCRIPTION'
+    | 'GENERIC_DESCRIPTION'
+    | 'ONLY_NUMBERS'
+    | 'AMBIGUOUS'
+    | 'UNUSUAL_AMOUNT'
+    | 'DUPLICATE_SUSPECTED'
 
 export interface BankStatementParseResult {
   bankName: string

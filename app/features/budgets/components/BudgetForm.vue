@@ -17,14 +17,14 @@ const props = withDefaults(defineProps<Props>(), {
   availableCategories: () => [],
 })
 
+const emit = defineEmits<Emits>()
+
 // Emits
 interface Emits {
-  'saved': [budget: Budget]
-  'confirm': [budget: Budget]
-  'close': []
+  saved: [budget: Budget]
+  confirm: [budget: Budget]
+  close: []
 }
-
-const emit = defineEmits<Emits>()
 
 // Composables
 const { submitBudget, isValidBudgetData } = useBudgetForm()
@@ -141,7 +141,7 @@ watch(() => props.month, (newMonth) => {
 </script>
 
 <template>
-  <UModal :open="true" :close="true" :dismissible="true" @close="closeForm" :ui="{ footer: 'justify-end' }">
+  <UModal :open="true" :close="true" :dismissible="true" :ui="{ footer: 'justify-end' }" @close="closeForm">
     <template #header>
       <div class="flex items-center justify-between flex-1 py-3">
         <div class="flex items-center gap-3">
@@ -264,7 +264,7 @@ watch(() => props.month, (newMonth) => {
             <div class="flex items-center justify-between">
               <span class="text-sm text-gray-600 dark:text-gray-400">Period</span>
               <span class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ new Date(formData.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) }}
+                {{ new Date(`${formData.month}-01`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) }}
               </span>
             </div>
             <div class="pt-2 mt-2 border-t border-purple-200 dark:border-purple-700/50">

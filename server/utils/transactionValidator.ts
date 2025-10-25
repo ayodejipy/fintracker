@@ -35,13 +35,13 @@ export function validateTransaction(transaction: ParsedTransaction): ParsedTrans
     needsReview = true
   }
   // Edge Case 2: Generic/unhelpful descriptions
-  else if (GENERIC_PATTERNS.some(pattern => desc === pattern)) {
+  else if (GENERIC_PATTERNS.includes(desc)) {
     flags.push('GENERIC_DESCRIPTION')
     confidence = 'low'
     needsReview = true
   }
   // Edge Case 3: Only numbers or codes (reference numbers)
-  else if (/^[\d\s\-\/]+$/.test(desc)) {
+  else if (/^[\d\s\-/]+$/.test(desc)) {
     flags.push('ONLY_NUMBERS')
     confidence = 'manual'
     needsReview = true
@@ -59,19 +59,19 @@ export function validateTransaction(transaction: ParsedTransaction): ParsedTrans
     // > 1M NGN
     flags.push('UNUSUAL_AMOUNT')
     needsReview = true
-    if (confidence === 'high') confidence = 'medium'
+    if (confidence === 'high') { confidence = 'medium' }
   }
   else if (amount < 10) {
     // < 10 NGN
     flags.push('UNUSUAL_AMOUNT')
     needsReview = true
-    if (confidence === 'high') confidence = 'medium'
+    if (confidence === 'high') { confidence = 'medium' }
   }
 
   // If no category was assigned, flag for review
   if (!transaction.category) {
     needsReview = true
-    if (confidence === 'high') confidence = 'low'
+    if (confidence === 'high') { confidence = 'low' }
   }
 
   return {

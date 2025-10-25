@@ -28,7 +28,7 @@ onMounted(async () => {
 })
 
 // Get category metadata from custom categories
-const getCategoryMetadata = (categoryValue: string) => {
+function getCategoryMetadata(categoryValue: string) {
   const category = categories.value.find(c => c.value === categoryValue)
   return {
     name: category?.name || categoryValue,

@@ -16,156 +16,339 @@ const prisma = new PrismaClient()
 export const CATEGORY_KEYWORD_MAP: Record<string, string[]> = {
   // Food & Groceries
   'Food & Groceries': [
-    'shoprite', 'spar', 'market', 'jendol', 'food', 'restaurant',
-    'chicken republic', 'kfc', 'dominos', 'pizza', 'coldstone',
-    'sweet sensation', 'tantalizers', 'mr biggs', 'bukka', 'eatery',
-    'bakery', 'cafe', 'grocery', 'supermarket', 'provision', 'meal',
+    'shoprite',
+    'spar',
+    'market',
+    'jendol',
+    'food',
+    'restaurant',
+    'chicken republic',
+    'kfc',
+    'dominos',
+    'pizza',
+    'coldstone',
+    'sweet sensation',
+    'tantalizers',
+    'mr biggs',
+    'bukka',
+    'eatery',
+    'bakery',
+    'cafe',
+    'grocery',
+    'supermarket',
+    'provision',
+    'meal',
   ],
 
   // Transportation
   'Transportation': [
-    'uber', 'bolt', 'taxi', 'cab', 'okada', 'keke', 'danfo', 'bus',
-    'fuel', 'petrol', 'diesel', 'filling station', 'conoil', 'total',
-    'mobil', 'oando', 'rain oil', 'forte oil', 'transport', 'ride',
+    'uber',
+    'bolt',
+    'taxi',
+    'cab',
+    'okada',
+    'keke',
+    'danfo',
+    'bus',
+    'fuel',
+    'petrol',
+    'diesel',
+    'filling station',
+    'conoil',
+    'total',
+    'mobil',
+    'oando',
+    'rain oil',
+    'forte oil',
+    'transport',
+    'ride',
   ],
 
   // Housing
   'Housing': [
-    'rent', 'landlord', 'lease', 'accommodation', 'housing',
-    'apartment', 'flat', 'tenancy', 'mortgage',
+    'rent',
+    'landlord',
+    'lease',
+    'accommodation',
+    'housing',
+    'apartment',
+    'flat',
+    'tenancy',
+    'mortgage',
   ],
 
   // Utilities
   'Utilities': [
-    'phcn', 'ekedc', 'ikedc', 'electric', 'electricity', 'nepa',
-    'water', 'waste', 'sanitation', 'lawma', 'utility', 'power',
+    'phcn',
+    'ekedc',
+    'ikedc',
+    'electric',
+    'electricity',
+    'nepa',
+    'water',
+    'waste',
+    'sanitation',
+    'lawma',
+    'utility',
+    'power',
   ],
 
   // Communication
   'Communication': [
-    'mtn', 'glo', 'airtel', '9mobile', 'etisalat', 'airtime', 'data',
-    'recharge', 'topup', 'top-up', 'subscription', 'bundle', 'internet',
-    'wifi', 'broadband',
+    'mtn',
+    'glo',
+    'airtel',
+    '9mobile',
+    'etisalat',
+    'airtime',
+    'data',
+    'recharge',
+    'topup',
+    'top-up',
+    'subscription',
+    'bundle',
+    'internet',
+    'wifi',
+    'broadband',
   ],
 
   // Healthcare
   'Healthcare': [
-    'pharmacy', 'medplus', 'health plus', 'hospital', 'clinic',
-    'doctor', 'medical', 'medicine', 'drug', 'health', 'vaccine',
+    'pharmacy',
+    'medplus',
+    'health plus',
+    'hospital',
+    'clinic',
+    'doctor',
+    'medical',
+    'medicine',
+    'drug',
+    'health',
+    'vaccine',
   ],
 
   // Education
   'Education': [
-    'school', 'tuition', 'course', 'book', 'textbook', 'lesson',
-    'tutorial', 'exam', 'certification', 'learning', 'training',
+    'school',
+    'tuition',
+    'course',
+    'book',
+    'textbook',
+    'lesson',
+    'tutorial',
+    'exam',
+    'certification',
+    'learning',
+    'training',
   ],
 
   // Entertainment
   'Entertainment': [
-    'netflix', 'spotify', 'dstv', 'gotv', 'startimes', 'showmax',
-    'cinema', 'movie', 'filmhouse', 'genesis', 'silverbird',
-    'game', 'gaming', 'concert', 'event',
+    'netflix',
+    'spotify',
+    'dstv',
+    'gotv',
+    'startimes',
+    'showmax',
+    'cinema',
+    'movie',
+    'filmhouse',
+    'genesis',
+    'silverbird',
+    'game',
+    'gaming',
+    'concert',
+    'event',
   ],
 
   // Shopping
   'Shopping': [
-    'jumia', 'konga', 'amazon', 'aliexpress', 'shopping',
-    'clothing', 'fashion', 'electronics', 'gadget', 'store',
+    'jumia',
+    'konga',
+    'amazon',
+    'aliexpress',
+    'shopping',
+    'clothing',
+    'fashion',
+    'electronics',
+    'gadget',
+    'store',
   ],
 
   // Family Support
   'Family Support': [
-    'family', 'parent', 'mother', 'father', 'sibling', 'support',
-    'allowance', 'contribution', 'upkeep',
+    'family',
+    'parent',
+    'mother',
+    'father',
+    'sibling',
+    'support',
+    'allowance',
+    'contribution',
+    'upkeep',
   ],
 
   // Religious/Spiritual
   'Religious/Spiritual': [
-    'church', 'mosque', 'tithe', 'offering', 'donation', 'religious',
-    'spiritual', 'pastor', 'imam', 'charity',
+    'church',
+    'mosque',
+    'tithe',
+    'offering',
+    'donation',
+    'religious',
+    'spiritual',
+    'pastor',
+    'imam',
+    'charity',
   ],
 
   // Business
   'Business': [
-    'business', 'supplier', 'vendor', 'equipment', 'inventory',
-    'office', 'commercial', 'professional',
+    'business',
+    'supplier',
+    'vendor',
+    'equipment',
+    'inventory',
+    'office',
+    'commercial',
+    'professional',
   ],
 
   // Savings & Investment
   'Savings & Investment': [
-    'savings', 'save', 'investment', 'invest', 'fixed deposit',
-    'fd', 'mutual fund', 'treasury', 'cowrywise', 'piggyvest',
-    'risevest', 'stock', 'bond',
+    'savings',
+    'save',
+    'investment',
+    'invest',
+    'fixed deposit',
+    'fd',
+    'mutual fund',
+    'treasury',
+    'cowrywise',
+    'piggyvest',
+    'risevest',
+    'stock',
+    'bond',
   ],
 
   // Debt Payments
   'Debt Payments': [
-    'loan', 'repayment', 'credit', 'debt', 'interest',
-    'installment', 'instalment', 'borrow', 'payback', 'carbon',
-    'fairmoney', 'branch', 'palmcredit', 'renmoney',
+    'loan',
+    'repayment',
+    'credit',
+    'debt',
+    'interest',
+    'installment',
+    'instalment',
+    'borrow',
+    'payback',
+    'carbon',
+    'fairmoney',
+    'branch',
+    'palmcredit',
+    'renmoney',
   ],
 
   // Miscellaneous
   'Miscellaneous': [
-    'miscellaneous', 'misc', 'other', 'general', 'various',
+    'miscellaneous',
+    'misc',
+    'other',
+    'general',
+    'various',
   ],
 
   // Income categories
   'Salary': [
-    'salary', 'wage', 'payroll', 'monthly pay', 'income',
+    'salary',
+    'wage',
+    'payroll',
+    'monthly pay',
+    'income',
   ],
 
   'Freelance': [
-    'freelance', 'consulting', 'contract', 'gig', 'project',
+    'freelance',
+    'consulting',
+    'contract',
+    'gig',
+    'project',
   ],
 
   'Business Income': [
-    'business revenue', 'sales', 'profit', 'business income',
+    'business revenue',
+    'sales',
+    'profit',
+    'business income',
   ],
 
   'Investment Returns': [
-    'dividend', 'interest', 'return', 'capital gain', 'yield',
+    'dividend',
+    'interest',
+    'return',
+    'capital gain',
+    'yield',
   ],
 
   'Rental Income': [
-    'rental', 'property income', 'tenant',
+    'rental',
+    'property income',
+    'tenant',
   ],
 
   'Gift/Bonus': [
-    'gift', 'bonus', 'award', 'prize', 'windfall',
+    'gift',
+    'bonus',
+    'award',
+    'prize',
+    'windfall',
   ],
 
   'Other Income': [
-    'refund', 'cashback', 'rebate',
+    'refund',
+    'cashback',
+    'rebate',
   ],
 
   // Fee categories
   'VAT': [
-    'vat', 'value added tax', 'tax',
+    'vat',
+    'value added tax',
+    'tax',
   ],
 
   'Service Fee': [
-    'service charge', 'service fee', 'gratuity',
+    'service charge',
+    'service fee',
+    'gratuity',
   ],
 
   'Commission': [
-    'commission', 'processing charge',
+    'commission',
+    'processing charge',
   ],
 
   'Stamp Duty': [
-    'stamp duty', 'levy', 'electronic money transfer levy',
+    'stamp duty',
+    'levy',
+    'electronic money transfer levy',
   ],
 
   'Transfer Fee': [
-    'transfer fee', 'transfer charge',
+    'transfer fee',
+    'transfer charge',
   ],
 
   'Processing Fee': [
-    'processing fee', 'handling fee',
+    'processing fee',
+    'handling fee',
   ],
 
   'Other Fees': [
-    'sms charge', 'sms alert', 'maintenance fee', 'card fee',
+    'sms charge',
+    'sms alert',
+    'maintenance fee',
+    'card fee',
   ],
 }
 

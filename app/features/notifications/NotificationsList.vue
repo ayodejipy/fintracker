@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Notification } from '~/types'
 import type { NotificationType } from '~/schemas/notifications'
-import { NOTIFICATION_TYPE_OPTIONS } from '~/schemas/notifications'
+import type { Notification } from '~/types'
 import NotificationItem from '~/components/notifications/NotificationItem.vue'
+import { NOTIFICATION_TYPE_OPTIONS } from '~/schemas/notifications'
 
 interface Props {
   notifications: Notification[]

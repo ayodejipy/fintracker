@@ -4,11 +4,11 @@ import { serverCache } from '~/utils/cache'
 export function usePerformanceDashboard() {
   // Temporarily disable performance dashboard to debug recurring errors
   console.warn('Performance dashboard temporarily disabled to debug recurring errors')
-  
+
   const metrics = ref(null)
   const systemMetrics = ref(null)
   const refreshMetrics = () => {}
-  
+
   // const { metrics, systemMetrics, refresh: refreshMetrics } = usePerformanceMonitoring()
 
   const loading = ref(false)

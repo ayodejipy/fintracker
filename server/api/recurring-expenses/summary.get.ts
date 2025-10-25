@@ -45,11 +45,11 @@ export default defineEventHandler(async (event) => {
 
     const upcomingExpenses = recurringExpenses
       .filter(expense => new Date(expense.nextDueDate) <= thirtyDaysFromNow)
-      .map(expense => {
+      .map((expense) => {
         const dueDate = new Date(expense.nextDueDate)
         const today = new Date()
         const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-        
+
         return {
           id: expense.id,
           name: expense.name,

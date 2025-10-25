@@ -48,7 +48,7 @@ export function usePerformance() {
     // Temporarily disable memory monitoring to debug recurring errors
     console.warn('Memory monitoring temporarily disabled to debug recurring errors')
     return
-    
+
     if (typeof window === 'undefined') { return }
 
     const checkMemory = () => {

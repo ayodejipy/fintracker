@@ -65,8 +65,7 @@ export interface GroupingOptions {
  * Handles formats like: "1,000.00", "1000", "₦1,000"
  */
 function parseAmount(amountStr: string | undefined): number {
-  if (!amountStr)
-    return 0
+  if (!amountStr) { return 0 }
 
   // Remove currency symbols, commas, spaces
   const cleaned = amountStr
@@ -111,8 +110,7 @@ export function groupTransactions(
 
   for (let i = 0; i < transactions.length; i++) {
     // Skip if already processed as a fee
-    if (processedIndices.has(i))
-      continue
+    if (processedIndices.has(i)) { continue }
 
     const current = transactions[i]
 

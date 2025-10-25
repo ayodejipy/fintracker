@@ -210,7 +210,7 @@ export function useNotifications() {
       console.warn('Notification check called too frequently, skipping')
       return
     }
-    
+
     try {
       lastCheckTime = now
       await $fetch('/api/notifications/check', { method: 'POST' })
