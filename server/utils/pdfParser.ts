@@ -1,4 +1,4 @@
-import { PDFParse } from 'pdf-parse'
+import { PDFParse } from 'pdf-parse/node'
 
 /**
  * PDF Parser for Bank Statements
