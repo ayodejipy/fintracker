@@ -1,7 +1,6 @@
 import type { RegisterInput } from '../schemas/register'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { useAuth } from '~/composables/useAuth'
 import {
   incomeSchema,
   passwordSchema,
@@ -10,7 +9,8 @@ import {
 } from '../schemas/register'
 
 export function useMultiStepRegister() {
-  const { register } = useAuth()
+  const { register } = useSupabaseAuth()
+  const showEmailConfirmation = ref(false)
 
   // Step management
   const currentStep = ref(1)
@@ -153,31 +153,31 @@ export function useMultiStepRegister() {
         generalError.value = ''
 
         // Prepare final data
-        const finalData: RegisterInput = {
+        const finalData = {
           name: formData.value.name!,
           email: formData.value.email!,
           monthlyIncome: Number(formData.value.monthlyIncome!),
           password: password.value!,
-          confirmPassword: confirmPassword.value!,
         }
 
-        await register(finalData)
+        const response = await register(finalData)
 
-        // Don't navigate here, let the parent component handle it
-        // The parent will handle navigation after receiving the success event
+        if (response.success) {
+          showEmailConfirmation.value = true
+          // Parent component will handle showing confirmation message
+        }
+        else {
+          generalError.value = response.message || 'Registration failed. Please try again.'
+
+          // If email already exists, go back to step 1
+          if (response.message?.toLowerCase().includes('already') || response.message?.toLowerCase().includes('exists')) {
+            currentStep.value = 1
+          }
+        }
       }
       catch (error: unknown) {
         console.error('Registration error:', error)
-
-        const apiError = error as { data?: { code?: string } }
-        if (apiError.data?.code === 'USER_EXISTS') {
-          generalError.value = 'An account with this email already exists.'
-          // Go back to step 1 to change email
-          currentStep.value = 1
-        }
-        else {
-          generalError.value = 'An error occurred during registration. Please try again.'
-        }
+        generalError.value = 'An error occurred during registration. Please try again.'
       }
       finally {
         isLoading.value = false
@@ -235,6 +235,7 @@ export function useMultiStepRegister() {
     isLoading: readonly(isLoading),
     generalError: readonly(generalError),
     isStepValid,
+    showEmailConfirmation: readonly(showEmailConfirmation),
 
     // Actions
     nextStep,

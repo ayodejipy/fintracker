@@ -1,11 +1,10 @@
 import type { LoginInput } from '../schemas/login'
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
-import { useAuth } from '~/composables/useAuth'
 import { loginSchema } from '../schemas/login'
 
 export function useLoginForm() {
-  const { login } = useAuth()
+  const { login } = useSupabaseAuth()
   const isLoading = ref(false)
   const generalError = ref('')
 
@@ -34,19 +33,18 @@ export function useLoginForm() {
       isLoading.value = true
       generalError.value = ''
 
-      await login(values)
-      await navigateTo('/dashboard')
+      const response = await login(values)
+
+      if (!response.success) {
+        generalError.value = response.message || 'Login failed. Please try again.'
+        return
+      }
+
+      // Success - user will be redirected by parent component
     }
     catch (error: unknown) {
       console.error('Login error:', error)
-
-      const apiError = error as { data?: { code?: string } }
-      if (apiError.data?.code === 'INVALID_CREDENTIALS') {
-        generalError.value = 'Invalid email or password. Please try again.'
-      }
-      else {
-        generalError.value = 'An error occurred during login. Please try again.'
-      }
+      generalError.value = 'An error occurred during login. Please try again.'
     }
     finally {
       isLoading.value = false

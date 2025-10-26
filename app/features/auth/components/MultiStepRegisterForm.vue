@@ -4,7 +4,7 @@ import FormInput from '~/components/ui/FormInput.vue'
 import { useMultiStepRegister } from '../composables/useMultiStepRegister'
 
 interface MultiStepRegisterFormEmits {
-  (e: 'success'): void
+  (e: 'success', email: string, needsConfirmation: boolean): void
   (e: 'stepChange', step: number): void
 }
 
@@ -38,6 +38,7 @@ const {
   isLoading,
   generalError,
   isStepValid,
+  showEmailConfirmation,
 
   // Actions
   prevStep,
@@ -50,9 +51,15 @@ watch(currentStep, (newStep) => {
   emit('stepChange', newStep)
 }, { immediate: true })
 
+// Watch for successful registration with email confirmation
+watch(showEmailConfirmation, (needsConfirmation) => {
+  if (needsConfirmation) {
+    emit('success', formData.value.email!, true)
+  }
+})
+
 async function onSubmit() {
   await submitForm()
-  emit('success')
 }
 </script>
 
