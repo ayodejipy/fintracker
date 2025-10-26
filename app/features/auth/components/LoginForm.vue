@@ -84,7 +84,7 @@ async function onSubmit() {
     <div v-if="generalError" class="rounded-md bg-red-50 p-4 dark:bg-red-900/20">
       <div class="flex">
         <Icon name="heroicons:exclamation-triangle" class="h-5 w-5 text-red-400" />
-        <div class="ml-3">
+        <div class="ml-1.5">
           <p class="text-sm text-red-800 dark:text-red-200">
             {{ generalError }}
           </p>

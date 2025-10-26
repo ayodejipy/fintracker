@@ -32,6 +32,10 @@
     "db:studio": "prisma studio",
     "db:studio:prod": "prisma studio --browser none",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:categories": "tsx prisma/seed-categories.ts",
+    "db:seed:demo": "tsx prisma/seed-demo-users.ts",
+    "db:seed:all": "npm run db:seed:categories && npm run db:seed:demo",
+    "db:cleanup:demo": "tsx prisma/cleanup-demo.ts",
     "db:reset": "prisma migrate reset --force",
     "db:status": "prisma migrate status"
   },
