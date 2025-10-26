@@ -9,17 +9,20 @@ useHead({
   title: 'Login - Personal Finance Tracker',
 })
 
-const { isAuthenticated } = useAuth()
+const user = useSupabaseUser()
+const route = useRoute()
 
-// Redirect authenticated users to dashboard
-watch(isAuthenticated, (authenticated) => {
-  if (authenticated) {
-    navigateTo('/dashboard')
+// Redirect authenticated users with confirmed email to dashboard
+watchEffect(() => {
+  if (user.value?.email_confirmed_at) {
+    const redirect = route.query.redirect as string
+    navigateTo(redirect || '/dashboard')
   }
-}, { immediate: true })
+})
 
 function onLoginSuccess() {
-  navigateTo('/dashboard')
+  const redirect = route.query.redirect as string
+  navigateTo(redirect || '/dashboard')
 }
 </script>
 

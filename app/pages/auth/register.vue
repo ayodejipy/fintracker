@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import MultiStepRegisterForm from '~/features/auth/components/MultiStepRegisterForm.vue'
 
 definePageMeta({
@@ -10,34 +10,33 @@ useHead({
   title: 'Register - Personal Finance Tracker',
 })
 
-const { isAuthenticated } = useAuth()
+const user = useSupabaseUser()
 
 // Track current step for sidebar updates
 const currentStep = ref(1)
-// Start as true to prevent redirect during registration flow
-const isInRegistrationFlow = ref(true)
+const showEmailConfirmation = ref(false)
+const registeredEmail = ref('')
 
-// Redirect authenticated users to dashboard
-// Only redirect if they're not in the registration flow
-watch(isAuthenticated, (authenticated) => {
-  // Only redirect if:
-  // 1. User is authenticated
-  // 2. They are NOT currently in the registration flow
-  if (authenticated && !isInRegistrationFlow.value) {
+// Redirect authenticated users with confirmed email to dashboard
+watchEffect(() => {
+  if (user.value?.email_confirmed_at) {
     navigateTo('/dashboard')
   }
-}, { immediate: true })
+})
 
-function onRegisterSuccess() {
-  // Registration complete, allow redirect
-  isInRegistrationFlow.value = false
-  navigateTo('/dashboard')
+function onRegisterSuccess(email: string, needsConfirmation: boolean) {
+  if (needsConfirmation) {
+    showEmailConfirmation.value = true
+    registeredEmail.value = email
+  }
+  else {
+    // Auto-login successful, redirect to dashboard
+    navigateTo('/dashboard')
+  }
 }
 
 function handleStepChange(step: number) {
   currentStep.value = step
-  // Keep the registration flow flag as true while in the process
-  // This prevents unwanted redirects during multi-step registration
 }
 
 // Initialize step tracking
@@ -233,8 +232,45 @@ onMounted(() => {
           </p>
         </div>
 
+        <!-- Email Confirmation Message (shown after successful registration) -->
+        <div v-if="showEmailConfirmation" class="bg-white dark:bg-gray-800 py-8 px-8 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+          <div class="text-center">
+            <div class="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-6">
+              <Icon name="heroicons:envelope" class="w-10 h-10 text-green-600 dark:text-green-400" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+              Check Your Email!
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+              We've sent a confirmation link to <strong class="text-gray-900 dark:text-white">{{ registeredEmail }}</strong>
+            </p>
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+              <p class="text-sm text-blue-800 dark:text-blue-200">
+                Please check your email and click the confirmation link to activate your account.
+              </p>
+            </div>
+            <div class="flex flex-col gap-3">
+              <UButton
+                to="/auth/login"
+                color="primary"
+                size="lg"
+                icon="i-heroicons-arrow-right"
+                trailing
+              >
+                Go to Login
+              </UButton>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Didn't receive the email? Check your spam folder or
+                <button class="text-blue-600 hover:text-blue-500 underline">
+                  resend confirmation
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Multi-Step Registration Form -->
-        <div class="bg-white dark:bg-gray-800 py-8 px-8 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
+        <div v-else class="bg-white dark:bg-gray-800 py-8 px-8 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
           <MultiStepRegisterForm @success="onRegisterSuccess" @step-change="handleStepChange" />
         </div>
 

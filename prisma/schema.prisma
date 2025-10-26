@@ -5,17 +5,19 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id                      String                   @id @default(cuid())
+  id                      String                   @id @db.Uuid
   email                   String                   @unique
   name                    String
-  monthlyIncome           Decimal                  @db.Decimal(10, 2)
+  emailVerified           Boolean                  @default(false)
+  emailVerifiedAt         DateTime?
+  monthlyIncome           Decimal                  @default(0) @db.Decimal(10, 2)
   currency                String                   @default("NGN")
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
-  password                String
   budgets                 Budget[]
   categories              Category[]
   loans                   Loan[]
@@ -30,7 +32,6 @@ model User {
 
 model Transaction {
   id                 String            @id @default(cuid())
-  userId             String
   amount             Decimal           @db.Decimal(10, 2)
   category           String
   description        String
@@ -57,6 +58,7 @@ model Transaction {
   userNote           String?
   vat                Decimal?          @db.Decimal(10, 2)
   total              Decimal?          @db.Decimal(10, 2)
+  userId             String            @db.Uuid
   recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id])
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -71,7 +73,6 @@ model Transaction {
 
 model Loan {
   id                  String    @id @default(cuid())
-  userId              String
   name                String
   initialAmount       Decimal   @db.Decimal(10, 2)
   currentBalance      Decimal   @db.Decimal(10, 2)
@@ -81,6 +82,7 @@ model Loan {
   projectedPayoffDate DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
+  userId              String    @db.Uuid
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -89,13 +91,13 @@ model Loan {
 
 model Budget {
   id           String   @id @default(cuid())
-  userId       String
   category     String
   monthlyLimit Decimal  @db.Decimal(10, 2)
   currentSpent Decimal  @default(0) @db.Decimal(10, 2)
   month        String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  userId       String   @db.Uuid
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, category, month])
@@ -106,7 +108,6 @@ model Budget {
 
 model SavingsGoal {
   id                  String   @id @default(cuid())
-  userId              String
   name                String
   targetAmount        Decimal  @db.Decimal(10, 2)
   currentAmount       Decimal  @default(0) @db.Decimal(10, 2)
@@ -114,6 +115,7 @@ model SavingsGoal {
   monthlyContribution Decimal  @db.Decimal(10, 2)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+  userId              String   @db.Uuid
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -122,7 +124,6 @@ model SavingsGoal {
 
 model Notification {
   id            String    @id @default(cuid())
-  userId        String
   type          String
   title         String
   message       String
@@ -135,6 +136,7 @@ model Notification {
   loanId        String?
   savingsGoalId String?
   transactionId String?
+  userId        String    @db.Uuid
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -145,7 +147,6 @@ model Notification {
 
 model NotificationPreferences {
   id                 String   @id @default(cuid())
-  userId             String   @unique
   budgetAlerts       Boolean  @default(true)
   paymentReminders   Boolean  @default(true)
   savingsReminders   Boolean  @default(true)
@@ -156,6 +157,7 @@ model NotificationPreferences {
   reminderDaysBefore Int      @default(3)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  userId             String   @unique @db.Uuid
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
@@ -163,7 +165,6 @@ model NotificationPreferences {
 
 model RecurringExpense {
   id                    String        @id @default(cuid())
-  userId                String
   name                  String
   amount                Decimal       @db.Decimal(10, 2)
   category              String
@@ -176,6 +177,7 @@ model RecurringExpense {
   autoCreateTransaction Boolean       @default(false)
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
+  userId                String        @db.Uuid
   user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions          Transaction[]
 
@@ -187,22 +189,21 @@ model RecurringExpense {
 
 model Category {
   id          String   @id @default(cuid())
-  userId      String?  // null = system-wide default category, non-null = user-specific custom category
-  name        String   // Category display name (e.g., "Food & Groceries", "Entertainment")
-  value       String   // Category value used in code (e.g., "food_groceries", "entertainment")
-  type        String   // 'income', 'expense', or 'fee'
-  isSystem    Boolean  @default(false) // true = default/system category, false = user-created
-  isActive    Boolean  @default(true)  // Can be disabled by user
-  icon        String?  // Optional icon identifier
-  color       String?  // Optional color for UI
-  description String?  // Optional description
-  sortOrder   Int      @default(999) // For ordering categories in UI
+  name        String
+  value       String
+  type        String
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  icon        String?
+  color       String?
+  description String?
+  sortOrder   Int      @default(999)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  userId      String?  @db.Uuid
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, value, type]) // Unique value per user and type (system categories have userId = null)
+  @@unique([userId, value, type])
   @@index([userId])
   @@index([type])
   @@index([isSystem])
