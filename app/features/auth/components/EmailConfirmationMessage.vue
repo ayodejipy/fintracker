@@ -34,8 +34,7 @@ function startCooldown() {
 }
 
 async function handleResend() {
-  if (cooldownSeconds.value > 0)
-    return
+  if (cooldownSeconds.value > 0) { return }
 
   isResending.value = true
   resendError.value = ''
