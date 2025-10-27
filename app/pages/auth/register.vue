@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import MultiStepRegisterForm from '~/features/auth/components/MultiStepRegisterForm.vue'
+import OnboardingSteps from '~/features/auth/components/OnboardingSteps.vue'
+import EmailConfirmationMessage from '~/features/auth/components/EmailConfirmationMessage.vue'
 
 definePageMeta({
   layout: 'auth',
@@ -38,11 +39,6 @@ function onRegisterSuccess(email: string, needsConfirmation: boolean) {
 function handleStepChange(step: number) {
   currentStep.value = step
 }
-
-// Initialize step tracking
-onMounted(() => {
-  currentStep.value = 1
-})
 </script>
 
 <template>
@@ -58,131 +54,9 @@ onMounted(() => {
           </h1>
         </div>
 
-        <!-- Onboarding Steps -->
+        <!-- Onboarding Steps Component -->
         <div class="flex-1">
-          <div class="relative">
-            <!-- Continuous connecting line background (connects all steps until step 3) -->
-            <div class="absolute left-5 top-10 w-0.5 h-48 bg-gray-300 dark:bg-gray-600" />
-
-            <!-- Step 1 - Your Details -->
-            <div class="relative flex items-start mb-12">
-              <div class="relative flex-shrink-0 mr-4 z-10">
-                <div
-                  class="w-10 h-10 rounded-md flex items-center justify-center transition-all duration-200"
-                  :class="currentStep >= 1 ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-600'"
-                >
-                  <Icon
-                    v-if="currentStep > 1"
-                    name="heroicons:check"
-                    class="h-5 w-5 text-white"
-                  />
-                  <Icon
-                    v-else
-                    name="heroicons:user"
-                    class="h-5 w-5"
-                    :class="currentStep >= 1 ? 'text-white' : 'text-gray-500 dark:text-gray-400'"
-                  />
-                </div>
-                <!-- Active line segment -->
-                <div
-                  v-if="currentStep > 1"
-                  class="absolute left-1/2 top-10 w-0.5 h-12 -translate-x-1/2 bg-green-600 transition-all duration-200"
-                />
-              </div>
-              <div class="pt-2">
-                <h3
-                  class="text-sm font-semibold"
-                  :class="currentStep >= 1 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                >
-                  Your details
-                </h3>
-                <p
-                  class="text-sm mt-1"
-                  :class="currentStep >= 1 ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'"
-                >
-                  Provide your name and email
-                </p>
-              </div>
-            </div>
-
-            <!-- Step 2 - Income Range -->
-            <div class="relative flex items-start mb-12">
-              <div class="relative flex-shrink-0 mr-4 z-10">
-                <div
-                  class="w-10 h-10 rounded-md flex items-center justify-center transition-all duration-200"
-                  :class="currentStep >= 2 ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-600'"
-                >
-                  <Icon
-                    v-if="currentStep > 2"
-                    name="heroicons:check"
-                    class="h-5 w-5 text-white"
-                  />
-                  <Icon
-                    v-else
-                    name="heroicons:currency-dollar"
-                    class="h-5 w-5"
-                    :class="currentStep >= 2 ? 'text-white' : 'text-gray-500 dark:text-gray-400'"
-                  />
-                </div>
-                <!-- Active line segment -->
-                <div
-                  v-if="currentStep > 2"
-                  class="absolute left-1/2 top-10 w-0.5 h-12 -translate-x-1/2 bg-green-600 transition-all duration-200"
-                />
-              </div>
-              <div class="pt-2">
-                <h3
-                  class="text-sm font-semibold"
-                  :class="currentStep >= 2 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                >
-                  Income range
-                </h3>
-                <p
-                  class="text-sm mt-1"
-                  :class="currentStep >= 2 ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'"
-                >
-                  Select your monthly income
-                </p>
-              </div>
-            </div>
-
-            <!-- Step 3 - Password & Create Account (no connecting line) -->
-            <div class="relative flex items-start">
-              <div class="relative flex-shrink-0 mr-4 z-10">
-                <div
-                  class="w-10 h-10 rounded-md flex items-center justify-center transition-all duration-200"
-                  :class="currentStep >= 3 ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-600'"
-                >
-                  <Icon
-                    v-if="currentStep > 3"
-                    name="heroicons:check"
-                    class="h-5 w-5 text-white"
-                  />
-                  <Icon
-                    v-else
-                    name="heroicons:lock-closed"
-                    class="h-5 w-5"
-                    :class="currentStep >= 3 ? 'text-white' : 'text-gray-500 dark:text-gray-400'"
-                  />
-                </div>
-                <!-- No connecting line for the last step -->
-              </div>
-              <div class="pt-2">
-                <h3
-                  class="text-sm font-semibold"
-                  :class="currentStep >= 3 ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'"
-                >
-                  Secure your account
-                </h3>
-                <p
-                  class="text-sm mt-1"
-                  :class="currentStep >= 3 ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400 dark:text-gray-500'"
-                >
-                  Create a strong password
-                </p>
-              </div>
-            </div>
-          </div>
+          <OnboardingSteps :current-step="currentStep" />
         </div>
 
         <!-- Bottom Navigation -->
@@ -232,42 +106,11 @@ onMounted(() => {
           </p>
         </div>
 
-        <!-- Email Confirmation Message (shown after successful registration) -->
-        <div v-if="showEmailConfirmation" class="bg-white dark:bg-gray-800 py-8 px-8 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
-          <div class="text-center">
-            <div class="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mb-6">
-              <Icon name="heroicons:envelope" class="w-10 h-10 text-green-600 dark:text-green-400" />
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
-              Check Your Email!
-            </h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-6">
-              We've sent a confirmation link to <strong class="text-gray-900 dark:text-white">{{ registeredEmail }}</strong>
-            </p>
-            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-              <p class="text-sm text-blue-800 dark:text-blue-200">
-                Please check your email and click the confirmation link to activate your account.
-              </p>
-            </div>
-            <div class="flex flex-col gap-3">
-              <UButton
-                to="/auth/login"
-                color="primary"
-                size="lg"
-                icon="i-heroicons-arrow-right"
-                trailing
-              >
-                Go to Login
-              </UButton>
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                Didn't receive the email? Check your spam folder or
-                <button class="text-blue-600 hover:text-blue-500 underline">
-                  resend confirmation
-                </button>
-              </p>
-            </div>
-          </div>
-        </div>
+        <!-- Email Confirmation Message Component -->
+        <EmailConfirmationMessage
+          v-if="showEmailConfirmation"
+          :email="registeredEmail"
+        />
 
         <!-- Multi-Step Registration Form -->
         <div v-else class="bg-white dark:bg-gray-800 py-8 px-8 shadow-sm rounded-xl border border-gray-200 dark:border-gray-700">
