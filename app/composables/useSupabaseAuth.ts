@@ -228,6 +228,37 @@ export function useSupabaseAuth() {
     }
   }
 
+  /**
+   * Sign in with Google OAuth
+   */
+  const signInWithGoogle = async (): Promise<AuthResponse> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+
+      // OAuth redirect happens automatically
+      return {
+        success: true,
+        message: 'Redirecting to Google...',
+      }
+    }
+    catch (error: any) {
+      console.error('Google sign-in error:', error)
+      return {
+        success: false,
+        message: error.message || 'Failed to sign in with Google. Please try again.',
+      }
+    }
+  }
+
   const isAuthenticated = computed(() => !!user.value)
   const isEmailVerified = computed(() => !!user.value?.email_confirmed_at)
 
@@ -244,5 +275,6 @@ export function useSupabaseAuth() {
     resendConfirmationEmail,
     resetPassword,
     updatePassword,
+    signInWithGoogle,
   }
 }
