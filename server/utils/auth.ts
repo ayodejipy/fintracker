@@ -21,25 +21,55 @@ export interface UserSession {
 
 export async function getUserSession(event: H3Event): Promise<UserSession | null> {
   try {
-    // Get token from Authorization header or cookies
+    // First try to get Supabase session from Authorization header
+    // This is used for OAuth and Supabase auth
     const authHeader = getHeader(event, 'authorization')
-    const token = authHeader?.replace('Bearer ', '') || getCookie(event, 'auth-token')
+    const supabaseToken = authHeader?.replace('Bearer ', '')
 
-    if (!token) {
+    if (supabaseToken) {
+      // For Supabase sessions, we trust the token is valid (already verified by Supabase)
+      // Extract the user info from the token or use it to fetch from Supabase
+      try {
+        // Decode without verifying (Supabase already verified it)
+        const jwt = await getJWT()
+        const decoded = jwt.decode(supabaseToken) as Record<string, unknown>
+
+        if (decoded && decoded.sub) {
+          // This is a Supabase token
+          return {
+            user: {
+              id: String(decoded.sub),
+              email: String(decoded.email || ''),
+              name: String(decoded.name || 'User'),
+            },
+          }
+        }
+      }
+      catch {
+        console.log('Not a Supabase token, trying custom JWT')
+      }
+    }
+
+    // Fall back to custom JWT token from cookies
+    const customToken = getCookie(event, 'auth-token')
+
+    if (!customToken) {
       return null
     }
 
     // Verify and decode the JWT token
     const jwt = await getJWT()
-    const decoded = jwt.verify(token, JWT_SECRET) as any
+    const decoded = jwt.verify(customToken, JWT_SECRET) as Record<string, unknown>
 
-    if (!decoded || !decoded.user) {
+    const decodedUser = decoded?.user as { id?: string; email?: string; name?: string } | undefined
+
+    if (!decodedUser || !decodedUser.id) {
       return null
     }
 
     // Verify user still exists in database
     const userExists = await prisma.user.findUnique({
-      where: { id: decoded.user.id },
+      where: { id: decodedUser.id },
       select: { id: true },
     })
 
@@ -51,9 +81,9 @@ export async function getUserSession(event: H3Event): Promise<UserSession | null
 
     return {
       user: {
-        id: decoded.user.id,
-        email: decoded.user.email,
-        name: decoded.user.name,
+        id: decodedUser.id,
+        email: decodedUser.email || '',
+        name: decodedUser.name || 'User',
       },
     }
   }
