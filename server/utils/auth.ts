@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
+import { serverSupabaseUser } from '#supabase/server'
 import { PrismaClient } from '@prisma/client'
-import { deleteCookie, getCookie, getHeader, setCookie } from 'h3'
+import { deleteCookie, getCookie, setCookie } from 'h3'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const prisma = new PrismaClient()
@@ -21,45 +22,69 @@ export interface UserSession {
 
 export async function getUserSession(event: H3Event): Promise<UserSession | null> {
   try {
-    // First try to get Supabase session from Authorization header
-    // This is used for OAuth and Supabase auth
-    const authHeader = getHeader(event, 'authorization')
-    const supabaseToken = authHeader?.replace('Bearer ', '')
+    // First try to get Supabase user (handles OAuth tokens from Supabase)
+    try {
+      console.warn('🔐 Attempting Supabase auth...')
+      const supabaseUser = await serverSupabaseUser(event)
+      console.warn('🔐 Supabase user exists:', !!supabaseUser)
+      console.warn('🔐 Supabase user type:', typeof supabaseUser)
+      console.warn('🔐 Supabase user object:', supabaseUser)
+      if (supabaseUser) {
+        console.warn('🔐 Supabase user keys:', Object.keys(supabaseUser))
+        console.warn('🔐 Supabase user.id:', (supabaseUser as any)?.id)
+        console.warn('🔐 Supabase user.sub:', (supabaseUser as any)?.sub)
+        console.warn('🔐 Supabase user.email:', (supabaseUser as any)?.email)
+        console.warn('🔐 Supabase user.user_id:', (supabaseUser as any)?.user_id)
+      }
 
-    if (supabaseToken) {
-      // For Supabase sessions, we trust the token is valid (already verified by Supabase)
-      // Extract the user info from the token or use it to fetch from Supabase
-      try {
-        // Decode without verifying (Supabase already verified it)
-        const jwt = await getJWT()
-        const decoded = jwt.decode(supabaseToken) as Record<string, unknown>
+      // Try to get user ID from different possible fields
+      const userId = supabaseUser?.id || (supabaseUser as Record<string, unknown>)?.sub || (supabaseUser as Record<string, unknown>)?.user_id
+      const userEmail = supabaseUser?.email || (supabaseUser as Record<string, unknown>)?.email
 
-        if (decoded && decoded.sub) {
-          // This is a Supabase token
+      console.warn('🔐 Extracted userId:', userId, 'email:', userEmail)
+
+      if (userId && userEmail) {
+        // Get user from database to ensure they exist
+        const dbUser = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { id: true, email: true, name: true },
+        })
+
+        if (dbUser) {
+          console.warn('✅ Supabase user authenticated:', { id: dbUser.id, email: dbUser.email })
           return {
             user: {
-              id: String(decoded.sub),
-              email: String(decoded.email || ''),
-              name: String(decoded.name || 'User'),
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name || 'User',
             },
           }
         }
+        console.warn('⚠️ Supabase user found but not in database:', userId)
       }
-      catch {
-        console.log('Not a Supabase token, trying custom JWT')
+      else {
+        console.warn('⚠️ No Supabase user found in token - missing userId or email')
       }
+    }
+    catch (error) {
+      // Supabase auth failed, fall back to custom JWT
+      console.error('❌ Supabase auth failed:', error instanceof Error ? error.message : String(error))
     }
 
     // Fall back to custom JWT token from cookies
     const customToken = getCookie(event, 'auth-token')
+    console.warn('🔐 Checking JWT cookie - customToken exists:', !!customToken)
 
     if (!customToken) {
+      console.warn('⚠️ No JWT cookie found')
       return null
     }
 
     // Verify and decode the JWT token
+    console.warn('🔐 Verifying JWT token...')
     const jwt = await getJWT()
     const decoded = jwt.verify(customToken, JWT_SECRET) as Record<string, unknown>
+    console.warn('✅ JWT token verified successfully')
 
     const decodedUser = decoded?.user as { id?: string; email?: string; name?: string } | undefined
 

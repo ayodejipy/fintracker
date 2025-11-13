@@ -2,9 +2,30 @@ import type { AuthResponse, UserSession } from '@/types'
 import type { LoginInput, RegisterInput } from '@/utils/auth'
 
 export function useAuth() {
+  const supabase = useSupabaseClient()
+
+  // Helper function to get auth headers for API requests
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error || !session?.access_token) {
+        return {}
+      }
+      return {
+        Authorization: `Bearer ${session.access_token}`,
+      }
+    }
+    catch {
+      return {}
+    }
+  }
+
   const { data: user, refresh: refreshUser } = useFetch<UserSession | null>('/api/auth/me', {
     default: () => null,
     server: false,
+    async headers() {
+      return await getAuthHeaders()
+    },
   })
 
   const login = async (credentials: LoginInput): Promise<AuthResponse> => {
@@ -55,5 +76,6 @@ export function useAuth() {
     logout,
     isAuthenticated,
     refreshUser,
+    getAuthHeaders,
   }
 }

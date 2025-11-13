@@ -21,8 +21,53 @@ onMounted(async () => {
       throw sessionError
     }
 
-    if (session) {
-      // User successfully authenticated with Google
+    if (session && session.user) {
+      // User successfully authenticated with OAuth/Supabase
+      // Sync user profile to database
+      const user = session.user
+      const oauthIdentity = user.identities?.[0]
+
+      console.warn('🔐 OAuth callback: Session found for user:', user.id)
+      console.warn('🔐 OAuth callback: Access token available:', !!session.access_token)
+
+      try {
+        await $fetch('/api/users/sync-profile', {
+          method: 'POST',
+          body: {
+            userId: user.id,
+            email: user.email,
+            name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            avatar: user.user_metadata?.avatar_url,
+            oauthProvider: oauthIdentity?.provider,
+            oauthProviderUserId: oauthIdentity?.id,
+          },
+        })
+      }
+      catch (syncError) {
+        console.warn('Failed to sync user profile, but continuing:', syncError)
+        // Don't fail the signin if profile sync fails - user can still login
+      }
+
+      // Create a custom JWT session to support server-side authentication
+      // This ensures the user stays authenticated even if Supabase session is lost
+      try {
+        console.warn('🔐 OAuth callback: Creating custom JWT session...')
+        await $fetch('/api/auth/create-session', {
+          method: 'POST',
+          body: {
+            userId: user.id,
+            email: user.email,
+            name: user.user_metadata?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+          },
+        })
+        console.warn('🔐 OAuth callback: Custom JWT session created successfully')
+      }
+      catch (jwtError) {
+        console.warn('Failed to create JWT session, but continuing:', jwtError)
+        // Don't fail - Supabase token should still work
+      }
+
+      console.warn('🔐 OAuth callback: Profile synced, redirecting to dashboard')
       // Redirect to dashboard
       await router.push('/dashboard')
     }
