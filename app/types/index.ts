@@ -408,6 +408,47 @@ export interface ApiErrorResponse {
   errors?: ValidationError[]
 }
 
+// Standardized API error codes
+export type ApiErrorCode =
+  | 'PASSWORD_REQUIRED'
+  | 'PASSWORD_INCORRECT'
+  | 'NO_FILE'
+  | 'INVALID_FILE'
+  | 'EXTRACTION_FAILED'
+  | 'VALIDATION_ERROR'
+  | 'UNAUTHORIZED'
+  | 'NOT_FOUND'
+  | 'INTERNAL_ERROR'
+
+// H3 Error Response (matches Nuxt/H3 error structure)
+export interface H3ErrorResponse {
+  error: true
+  url: string
+  statusCode: number
+  statusMessage: string
+  message: string
+  stack?: string[]
+  data?: Record<string, any>
+}
+
+// Standard success response
+export interface SuccessResponse<T = any> {
+  success: true
+  data?: T
+  message?: string
+}
+
+// Standard error response (for our APIs)
+export interface ErrorResponse {
+  success: false
+  error: string
+  message: string
+  statusCode?: number
+  statusMessage?: ApiErrorCode
+  requiresPassword?: boolean
+  data?: Record<string, any>
+}
+
 // Utility types
 export type Nullable<T> = T | null
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>

@@ -89,24 +89,42 @@ export function useDashboard(initialMonth?: Ref<string> | string) {
   // Use the passed ref directly if it's a ref, otherwise create a new one
   const selectedMonth = isRef(initialMonth) ? initialMonth : ref(typeof initialMonth === 'string' ? initialMonth : undefined)
 
+  // State management for dashboard data
+  const response = ref<ApiResponse<DashboardData> | null>(null)
+  const loading = ref(false)
+  const fetchError = ref<any>(null)
+
   // Build query params reactively
   const queryParams = computed(() => selectedMonth.value ? { month: selectedMonth.value } : {})
 
-  // Use a single cache key - the query params will handle filtering
-  // This ensures we have one reactive fetch instance that updates smoothly
-  const cacheKey = 'dashboard-overview'
+  // Fetch function using $fetch which will be automatically intercepted with auth headers
+  const fetchDashboardDataInternal = async () => {
+    try {
+      loading.value = true
+      fetchError.value = null
+      const month = selectedMonth.value || new Date().toISOString().slice(0, 7)
+      response.value = await $fetch('/api/dashboard/overview', {
+        method: 'GET',
+        query: { month },
+      })
+    }
+    catch (error: any) {
+      console.error('Error fetching dashboard:', error)
+      fetchError.value = error
+    }
+    finally {
+      loading.value = false
+    }
+  }
 
-  // Use useFetch for reactive, cached data
-  const { data: response, status, pending: loading, error: fetchError, refresh } = useFetch('/api/dashboard/overview', {
-    key: cacheKey,
-    query: queryParams,
-    server: false,
-    lazy: false,
-    immediate: true,
-    // Watch for query changes and refetch
-    watch: [queryParams],
-    // Provide default data structure to avoid null/undefined states
-    default: () => null,
+  // Watch for month changes and refetch
+  watch(queryParams, () => {
+    fetchDashboardDataInternal()
+  }, { immediate: false })
+
+  // Initial fetch on mount
+  onMounted(() => {
+    fetchDashboardDataInternal()
   })
 
   // Extract dashboard data from API response
@@ -129,7 +147,7 @@ export function useDashboard(initialMonth?: Ref<string> | string) {
 
   // Refresh function for manual cache invalidation
   const refreshDashboard = () => {
-    return refresh()
+    return fetchDashboardDataInternal()
   }
 
   // Fetch data (either refresh current month or change month)
@@ -139,7 +157,7 @@ export function useDashboard(initialMonth?: Ref<string> | string) {
       // Watch will trigger refetch automatically
     }
     else {
-      return refresh()
+      return fetchDashboardDataInternal()
     }
   }
 
@@ -312,7 +330,6 @@ export function useDashboard(initialMonth?: Ref<string> | string) {
     loading: readonly(loading),
     error: readonly(error),
     selectedMonth: readonly(selectedMonth),
-    status: readonly(status),
 
     // Actions
     fetchDashboardData,

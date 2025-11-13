@@ -1,4 +1,5 @@
 import type { BankStatementParseResult } from '~/types'
+import { handleApiError } from '~/utils/errorHandler'
 
 /**
  * Composable for handling bank statement upload and parsing
@@ -134,30 +135,23 @@ export function useStatementUpload() {
       }
     }
     catch (err: any) {
-      console.error('Upload error:', err)
+      // Use the standardized error handler
+      const errorResult = handleApiError(err, 'parse statement')
 
       // Reset progress on error
       uploadProgress.value = 0
       uploadStatus.value = ''
 
       // Check if password is required
-      if (err.statusCode === 401 && err.statusMessage === 'PASSWORD_REQUIRED') {
+      if (errorResult.requiresPassword) {
         passwordRequired.value = true
-        const errorMessage = err.data?.message || 'This PDF is password protected'
-        error.value = errorMessage
-
-        return {
-          success: false,
-          error: errorMessage,
-        }
       }
 
-      const errorMessage = err.data?.message || err.message || 'Failed to parse statement'
-      error.value = errorMessage
+      error.value = errorResult.error
 
       return {
         success: false,
-        error: errorMessage,
+        error: errorResult.error,
       }
     }
     finally {
