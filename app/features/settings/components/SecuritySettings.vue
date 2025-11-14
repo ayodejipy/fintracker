@@ -4,18 +4,27 @@ import { securitySettingsSchema } from '../schemas'
 
 interface Props {
   loading?: boolean
-  twoFactorEnabled?: boolean
+  user?: {
+    oauthProvider?: string | null
+  }
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  twoFactorEnabled: false,
 })
 
 const emit = defineEmits<{
   changePassword: [data: SecuritySettingsInput]
-  toggle2FA: [enabled: boolean]
 }>()
+
+// Determine if user is OAuth or email/password
+const isOAuthUser = computed(() => !!props.user?.oauthProvider)
+const authMethod = computed(() => {
+  if (props.user?.oauthProvider) {
+    return props.user.oauthProvider.charAt(0).toUpperCase() + props.user.oauthProvider.slice(1)
+  }
+  return 'Email/Password'
+})
 
 const { handleSubmit, errors, formData, resetForm } = useFormValidation({
   currentPassword: '',
@@ -37,9 +46,17 @@ async function onSubmit(event: Event) {
   })
 }
 
-function toggle2FA() {
-  emit('toggle2FA', !props.twoFactorEnabled)
-}
+// OAuth security link based on provider
+const oauthSecurityLink = computed(() => {
+  const provider = props.user?.oauthProvider?.toLowerCase()
+  const links: Record<string, string> = {
+    'google': 'https://myaccount.google.com/security',
+    'github': 'https://github.com/settings/security',
+    'facebook': 'https://www.facebook.com/settings?tab=security',
+    'twitter': 'https://twitter.com/settings/security',
+  }
+  return links[provider || ''] || 'https://myaccount.google.com/security'
+})
 </script>
 
 <template>
@@ -53,14 +70,75 @@ function toggle2FA() {
           Security Settings
         </h3>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Manage your password and security preferences
+          {{ isOAuthUser ? `Manage your ${authMethod} security` : 'Manage your password and security' }}
         </p>
       </div>
     </div>
 
     <div class="space-y-8">
-      <!-- Change Password -->
-      <div>
+      <!-- OAuth User - Info Card -->
+      <div v-if="isOAuthUser" class="space-y-4">
+        <UAlert
+          color="primary"
+          variant="subtle"
+          icon="i-heroicons-information-circle"
+        >
+          <template #title>
+            OAuth Authentication
+          </template>
+          <template #description>
+            You're securely signed in with {{ authMethod }}. Your authentication and password security are managed by {{ authMethod }}.
+          </template>
+        </UAlert>
+
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <UIcon name="i-heroicons-shield-check" class="w-5 h-5 text-white" />
+            </div>
+            <div class="flex-1">
+              <p class="font-medium text-gray-900 dark:text-white mb-1">
+                Security Managed by {{ authMethod }}
+              </p>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                To update your password, enable two-factor authentication, or manage other security settings, please visit your {{ authMethod }} account.
+              </p>
+              <UButton
+                :to="oauthSecurityLink"
+                target="_blank"
+                color="primary"
+                variant="outline"
+                size="sm"
+                icon="i-heroicons-arrow-top-right-on-square"
+                trailing
+              >
+                Open {{ authMethod }} Security Settings
+              </UButton>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Tips for OAuth Users -->
+        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div class="flex items-start">
+            <UIcon name="i-heroicons-light-bulb" class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5 flex-shrink-0" />
+            <div>
+              <p class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                Security Recommendations
+              </p>
+              <ul class="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-disc list-inside">
+                <li>Enable two-factor authentication on your {{ authMethod }} account</li>
+                <li>Use a strong, unique password for your {{ authMethod }} account</li>
+                <li>Review your {{ authMethod }} account's recent activity regularly</li>
+                <li>Keep your {{ authMethod }} recovery options up to date</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email/Password User - Change Password Form -->
+      <div v-else>
         <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">
           Change Password
         </h4>
@@ -168,34 +246,6 @@ function toggle2FA() {
             </UButton>
           </div>
         </form>
-      </div>
-
-      <!-- Two-Factor Authentication -->
-      <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
-        <div class="flex items-center justify-between">
-          <div>
-            <h4 class="text-md font-medium text-gray-900 dark:text-white">
-              Two-Factor Authentication
-            </h4>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Add an extra layer of security to your account
-            </p>
-          </div>
-          <UToggle
-            :model-value="twoFactorEnabled"
-            size="lg"
-            @update:model-value="toggle2FA"
-          />
-        </div>
-
-        <div v-if="twoFactorEnabled" class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-          <div class="flex items-center">
-            <UIcon name="i-heroicons-shield-check" class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
-            <span class="text-sm text-green-800 dark:text-green-200">
-              Two-factor authentication is enabled
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   </div>

@@ -118,9 +118,14 @@ export function isMonthInFuture(month: string): boolean {
 
 /**
  * Generate list of months for selection (last N months + current)
+ * Includes a disabled "Select month" option as the first item
  */
-export function getMonthOptions(numberOfMonths: number = 12): Array<{ label: string, value: string }> {
-  const options = []
+export function getMonthOptions(numberOfMonths: number = 12): Array<{ label: string, value: string, disabled?: boolean }> {
+  const options: Array<{ label: string, value: string, disabled?: boolean }> = []
+
+  // Add disabled "Select month" placeholder as first option
+  options.push({ label: 'Select month', value: '', disabled: true })
+
   const currentDate = new Date()
 
   for (let i = 0; i < numberOfMonths; i++) {

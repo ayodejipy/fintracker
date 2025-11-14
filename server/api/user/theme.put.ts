@@ -4,8 +4,8 @@ import { getUserSession } from '../../utils/auth'
 
 const updateThemeSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']),
-  compactMode: z.boolean().optional(),
-  reducedMotion: z.boolean().optional(),
+  compactMode: z.boolean(),
+  reducedMotion: z.boolean(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -25,25 +25,32 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const preferences = updateThemeSchema.parse(body)
 
-    // For now, we'll store theme preferences in a simple JSON field
-    // In a real app, you might want a separate UserPreferences table
-    const _updatedUser = await db.user.update({
-      where: { id: user.id },
-      data: {
-        // Store as JSON in a preferences field (you'd need to add this to your schema)
-        // For now, we'll just return success
+    // Upsert user preferences
+    const userPreferences = await db.userPreferences.upsert({
+      where: { userId: user.id },
+      update: {
+        theme: preferences.theme,
+        compactMode: preferences.compactMode,
+        reducedMotion: preferences.reducedMotion,
+      },
+      create: {
+        userId: user.id,
+        theme: preferences.theme,
+        compactMode: preferences.compactMode,
+        reducedMotion: preferences.reducedMotion,
       },
       select: {
         id: true,
-        email: true,
-        name: true,
-        currency: true,
+        theme: true,
+        compactMode: true,
+        reducedMotion: true,
+        locale: true,
       },
     })
 
     return {
       success: true,
-      preferences,
+      data: userPreferences,
       message: 'Theme preferences updated successfully',
     }
   }

@@ -22,9 +22,16 @@ const monthOptions = getMonthOptions(12)
 
 // Selected month object (for USelectMenu binding)
 const selectedMonthOption = computed({
-  get: () => monthOptions.find(option => option.value === props.modelValue) || monthOptions[0],
-  set: (option: { label: string, value: string }) => {
-    emit('update:modelValue', option.value)
+  get: () => {
+    // Find the actual selected month, or default to first enabled option (skip disabled "Select month")
+    const selected = monthOptions.find(option => option.value === props.modelValue)
+    return selected || monthOptions.find(option => !option.disabled) || monthOptions[1]
+  },
+  set: (option: { label: string, value: string, disabled?: boolean }) => {
+    // Only emit if the option is not disabled
+    if (!option.disabled && option.value) {
+      emit('update:modelValue', option.value)
+    }
   },
 })
 

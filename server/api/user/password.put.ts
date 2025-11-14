@@ -29,16 +29,33 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const { currentPassword, newPassword } = changePasswordSchema.parse(body)
 
-    // Get user with password hash
+    // Get user with password hash and oauthProvider
     const userWithPassword = await db.user.findUnique({
       where: { id: user.id },
-      select: { id: true, password: true },
+      select: { id: true, password: true, oauthProvider: true },
     })
 
     if (!userWithPassword) {
       throw createError({
         statusCode: 404,
         statusMessage: 'User not found',
+      })
+    }
+
+    // Prevent OAuth users from changing password
+    if (userWithPassword.oauthProvider) {
+      const providerName = userWithPassword.oauthProvider.charAt(0).toUpperCase() + userWithPassword.oauthProvider.slice(1)
+      throw createError({
+        statusCode: 400,
+        statusMessage: `You're signed in with ${providerName}. Password management is handled by your ${providerName} account.`,
+      })
+    }
+
+    // Verify password field exists for email/password users
+    if (!userWithPassword.password) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'No password set for this account',
       })
     }
 

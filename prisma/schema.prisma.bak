@@ -11,7 +11,6 @@ datasource db {
 model User {
   email                   String                   @unique
   name                    String
-  password                String?                  // Optional: for email/password auth (null for OAuth users)
   monthlyIncome           Decimal                  @default(0) @db.Decimal(10, 2)
   currency                String                   @default("NGN")
   createdAt               DateTime                 @default(now())
@@ -20,7 +19,7 @@ model User {
   emailVerifiedAt         DateTime?
   id                      String                   @id @db.Uuid
   avatar                  String?
-  oauthProvider           String?                  // null = email/password user, "google" = OAuth user
+  oauthProvider           String?
   oauthProviderUserId     String?
   budgets                 Budget[]
   categories              Category[]

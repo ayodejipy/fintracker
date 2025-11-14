@@ -21,13 +21,13 @@ export function useSettings() {
       key: 'security',
       label: 'Security',
       icon: 'i-heroicons-shield-check',
-      description: 'Password & 2FA',
+      description: 'Change password',
     },
     {
       key: 'theme',
-      label: 'Theme',
+      label: 'Appearance',
       icon: 'i-heroicons-paint-brush',
-      description: 'Appearance settings',
+      description: 'Theme & display',
     },
     {
       key: 'notifications',

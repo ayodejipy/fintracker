@@ -36,25 +36,54 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const preferences = updateNotificationsSchema.parse(body)
 
-    // For now, we'll store notification preferences in a simple way
-    // In a real app, you might want a separate UserPreferences table
-    const _updatedUser = await db.user.update({
-      where: { id: user.id },
-      data: {
-        // Store as JSON in a preferences field (you'd need to add this to your schema)
-        // For now, we'll just return success
+    // Upsert notification preferences
+    const notificationPreferences = await db.notificationPreferences.upsert({
+      where: { userId: user.id },
+      update: {
+        emailBudgetAlerts: preferences.email.budgetAlerts,
+        emailGoalReminders: preferences.email.goalReminders,
+        emailWeeklyReports: preferences.email.weeklyReports,
+        emailMonthlyReports: preferences.email.monthlyReports,
+        emailSecurityAlerts: preferences.email.securityAlerts,
+        pushBudgetAlerts: preferences.push.budgetAlerts,
+        pushGoalReminders: preferences.push.goalReminders,
+        pushWeeklyReports: preferences.push.weeklyReports,
+        pushMonthlyReports: preferences.push.monthlyReports,
+        pushSecurityAlerts: preferences.push.securityAlerts,
+      },
+      create: {
+        userId: user.id,
+        emailBudgetAlerts: preferences.email.budgetAlerts,
+        emailGoalReminders: preferences.email.goalReminders,
+        emailWeeklyReports: preferences.email.weeklyReports,
+        emailMonthlyReports: preferences.email.monthlyReports,
+        emailSecurityAlerts: preferences.email.securityAlerts,
+        pushBudgetAlerts: preferences.push.budgetAlerts,
+        pushGoalReminders: preferences.push.goalReminders,
+        pushWeeklyReports: preferences.push.weeklyReports,
+        pushMonthlyReports: preferences.push.monthlyReports,
+        pushSecurityAlerts: preferences.push.securityAlerts,
       },
       select: {
         id: true,
-        email: true,
-        name: true,
-        currency: true,
+        emailBudgetAlerts: true,
+        emailGoalReminders: true,
+        emailWeeklyReports: true,
+        emailMonthlyReports: true,
+        emailSecurityAlerts: true,
+        pushBudgetAlerts: true,
+        pushGoalReminders: true,
+        pushWeeklyReports: true,
+        pushMonthlyReports: true,
+        pushSecurityAlerts: true,
+        budgetThreshold: true,
+        reminderDaysBefore: true,
       },
     })
 
     return {
       success: true,
-      preferences,
+      data: notificationPreferences,
       message: 'Notification preferences updated successfully',
     }
   }

@@ -318,6 +318,7 @@ export interface AuthUser {
   name: string
   monthlyIncome: number
   currency: string
+  oauthProvider?: string | null
   createdAt: Date
   updatedAt: Date
 }

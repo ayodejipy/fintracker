@@ -104,9 +104,8 @@ const {
           <div v-else-if="selectedTab === 1" class="space-y-6">
             <SecuritySettings
               :loading="loading"
-              :two-factor-enabled="twoFactorEnabled"
+              :user="user?.user"
               @change-password="changePassword"
-              @toggle2-f-a="toggle2FA"
             />
           </div>
 

@@ -50,7 +50,7 @@
     "@nuxtjs/supabase": "^2.0.1",
     "@pinia/nuxt": "^0.11.2",
     "@prisma/adapter-pg": "^6.18.0",
-    "@prisma/client": "^6.16.2",
+    "@prisma/client": "6.19.0",
     "@sidebase/nuxt-auth": "^1.0.2",
     "@unhead/vue": "^2.0.17",
     "@vee-validate/zod": "^4.15.1",

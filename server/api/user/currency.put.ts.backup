@@ -1,6 +1,8 @@
+import { PrismaClient } from '@prisma/client'
+import jwt from 'jsonwebtoken'
 import { z } from 'zod'
-import { prisma as db } from '../../../app/utils/database'
-import { getUserSession } from '../../utils/auth'
+
+const prisma = new PrismaClient()
 
 const currencyUpdateSchema = z.object({
   currency: z.string().min(3).max(3, 'Currency code must be 3 characters'),
@@ -9,24 +11,43 @@ const currencyUpdateSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    // Get user from session (works with both Supabase OAuth and custom JWT)
-    const session = await getUserSession(event)
-    if (!session?.user) {
+    // Check if method is PUT
+    if (getMethod(event) !== 'PUT') {
       throw createError({
-        statusCode: 401,
-        statusMessage: 'Unauthorized',
+        statusCode: 405,
+        statusMessage: 'Method not allowed',
       })
     }
 
-    const user = session.user
+    // Get and verify JWT token
+    const token = getCookie(event, 'auth-token') || getHeader(event, 'authorization')?.replace('Bearer ', '')
+
+    if (!token) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Authentication required',
+      })
+    }
+
+    let userId: string
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as { userId: string }
+      userId = decoded.userId
+    }
+    catch {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Invalid token',
+      })
+    }
 
     // Parse and validate request body
     const body = await readBody(event)
     const validatedData = currencyUpdateSchema.parse(body)
 
     // Update user currency
-    const updatedUser = await db.user.update({
-      where: { id: user.id },
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
       data: {
         currency: validatedData.currency,
       },
@@ -70,5 +91,8 @@ export default defineEventHandler(async (event) => {
       statusCode: 500,
       statusMessage: 'Internal server error',
     })
+  }
+  finally {
+    await prisma.$disconnect()
   }
 })
