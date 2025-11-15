@@ -30,6 +30,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Transportation',
+      value: 'transportation',
       type: 'expense',
       icon: '🚗',
       color: '#3B82F6',
@@ -38,6 +39,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Housing',
+      value: 'housing',
       type: 'expense',
       icon: '🏠',
       color: '#8B5CF6',
@@ -46,6 +48,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Utilities',
+      value: 'utilities',
       type: 'expense',
       icon: '⚡',
       color: '#F59E0B',
@@ -54,6 +57,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Communication',
+      value: 'communication',
       type: 'expense',
       icon: '📱',
       color: '#EC4899',
@@ -62,6 +66,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Healthcare',
+      value: 'healthcare',
       type: 'expense',
       icon: '🏥',
       color: '#EF4444',
@@ -70,6 +75,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Education',
+      value: 'education',
       type: 'expense',
       icon: '📚',
       color: '#6366F1',
@@ -78,6 +84,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Entertainment',
+      value: 'entertainment',
       type: 'expense',
       icon: '🎬',
       color: '#F97316',
@@ -86,6 +93,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Shopping',
+      value: 'shopping',
       type: 'expense',
       icon: '🛍️',
       color: '#EC4899',
@@ -94,6 +102,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Family Support',
+      value: 'family_support',
       type: 'expense',
       icon: '👨‍👩‍👧‍👦',
       color: '#10B981',
@@ -102,6 +111,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Religious/Spiritual',
+      value: 'religious_spiritual',
       type: 'expense',
       icon: '🙏',
       color: '#8B5CF6',
@@ -110,6 +120,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Business',
+      value: 'business',
       type: 'expense',
       icon: '💼',
       color: '#3B82F6',
@@ -118,6 +129,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Savings & Investment',
+      value: 'savings_investment',
       type: 'expense',
       icon: '💰',
       color: '#10B981',
@@ -126,6 +138,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Debt Payments',
+      value: 'debt_payments',
       type: 'expense',
       icon: '💳',
       color: '#EF4444',
@@ -134,6 +147,7 @@ async function seedDefaultCategories() {
     },
     {
       name: 'Miscellaneous',
+      value: 'miscellaneous',
       type: 'expense',
       icon: '📦',
       color: '#6B7280',

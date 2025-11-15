@@ -28,8 +28,8 @@ interface TransactionSummary {
 }
 
 export function useTransactions(filters: MaybeRef<TransactionFilters> = {}) {
-  // Make filters reactive
-  const reactiveFilters = ref(filters)
+  // Make filters reactive - ensure it's always a ref
+  const reactiveFilters = isRef(filters) ? filters : ref(filters as TransactionFilters)
 
   // Build query params based on reactive filters
   const query = computed(() => {
@@ -47,12 +47,19 @@ export function useTransactions(filters: MaybeRef<TransactionFilters> = {}) {
     return q
   })
 
+  // Build cache key from filters to prevent unnecessary refetches
+  const cacheKey = computed(() => {
+    const f = unref(reactiveFilters)
+    return `transactions-list-${f.month || 'all'}-${f.type || 'all'}-${f.category || 'all'}-${f.page || 1}`
+  })
+
   // Use useFetch for reactive, cached transactions list
   const { data: response, pending: loading, error: fetchError, refresh } = useFetch<PaginatedResponse<Transaction>>('/api/transactions', {
+    key: cacheKey,  // Cache key enables caching across navigation
     query,
     server: true,
     lazy: false,
-    watch: [query],
+    watch: [query],  // Refetch only when filters change
     default: () => ({
       data: [],
       total: 0,

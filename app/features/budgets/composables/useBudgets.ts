@@ -25,6 +25,7 @@ export function useBudgets(filters: BudgetFilters = {}) {
     query,
     server: true,
     lazy: false,
+    watch: [], // Don't watch since filters are passed once at initialization
     default: () => ({ data: [], success: false, message: 'Loading...' }),
   })
 

@@ -25,14 +25,14 @@ const quickActionItems = computed(() => [
       icon: 'i-heroicons-arrow-trending-up',
       iconClass: 'text-green-500',
       to: '/income',
-      description: 'View detailed income breakdown',
+      description: 'View income breakdown',
     },
     {
       label: 'Expense Analysis',
       icon: 'i-heroicons-arrow-trending-down',
       iconClass: 'text-red-500',
       to: '/expenses',
-      description: 'Deep dive into spending patterns',
+      description: 'Analyze spending patterns',
     },
   ],
   [
@@ -66,7 +66,7 @@ const quickActionItems = computed(() => [
   ],
 ])
 
-// User dropdown menu items (cleaned up)
+// User dropdown menu items
 const userMenuItems = computed(() => {
   const userData = user.value?.user
   return [
@@ -81,26 +81,9 @@ const userMenuItems = computed(() => {
     ],
     [
       {
-        label: 'Profile',
-        icon: 'i-heroicons-user',
-        to: '/profile',
-      },
-      {
         label: 'Settings',
         icon: 'i-heroicons-cog-6-tooth',
         to: '/settings',
-      },
-    ],
-    [
-      {
-        label: 'Support',
-        icon: 'i-heroicons-question-mark-circle',
-        to: '/support',
-      },
-      {
-        label: 'Documentation',
-        icon: 'i-heroicons-document-text',
-        to: '/docs',
       },
     ],
     [
@@ -171,15 +154,6 @@ const userMenuItems = computed(() => {
 
         <!-- Notifications -->
         <NotificationDropdown />
-
-        <!-- Messages -->
-        <button
-          class="relative p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 rounded-lg transition-colors"
-        >
-          <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="h-6 w-6" />
-          <!-- Message indicator -->
-          <span class="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400" />
-        </button>
 
         <!-- Divider -->
         <div class="h-6 w-px bg-gray-200 dark:bg-gray-700" />

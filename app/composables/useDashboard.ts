@@ -89,43 +89,24 @@ export function useDashboard(initialMonth?: Ref<string> | string) {
   // Use the passed ref directly if it's a ref, otherwise create a new one
   const selectedMonth = isRef(initialMonth) ? initialMonth : ref(typeof initialMonth === 'string' ? initialMonth : undefined)
 
-  // State management for dashboard data
-  const response = ref<ApiResponse<DashboardData> | null>(null)
-  const loading = ref(false)
-  const fetchError = ref<any>(null)
+  // Build dynamic cache key based on month
+  const cacheKey = computed(() => `dashboard-${selectedMonth.value || 'current'}`)
 
   // Build query params reactively
   const queryParams = computed(() => selectedMonth.value ? { month: selectedMonth.value } : {})
 
-  // Fetch function using $fetch which will be automatically intercepted with auth headers
-  const fetchDashboardDataInternal = async () => {
-    try {
-      loading.value = true
-      fetchError.value = null
-      const month = selectedMonth.value || new Date().toISOString().slice(0, 7)
-      response.value = await $fetch('/api/dashboard/overview', {
-        method: 'GET',
-        query: { month },
-      })
+  // Use useFetch with caching - automatically caches by key and reuses on navigation
+  const { data: response, pending: loading, error: fetchError, refresh: refreshDashboard } = useFetch<ApiResponse<DashboardData>>(
+    '/api/dashboard/overview',
+    {
+      key: cacheKey,  // Unique cache key per month - prevents refetch when returning to same month
+      query: queryParams,  // Reactive query parameters
+      server: true,  // Enable server-side rendering
+      lazy: false,  // Fetch immediately
+      watch: [selectedMonth],  // Refetch only when month changes
+      default: () => ({ success: false, data: null, message: 'Loading dashboard data...' } as unknown as ApiResponse<DashboardData>),
     }
-    catch (error: any) {
-      console.error('Error fetching dashboard:', error)
-      fetchError.value = error
-    }
-    finally {
-      loading.value = false
-    }
-  }
-
-  // Watch for month changes and refetch
-  watch(queryParams, () => {
-    fetchDashboardDataInternal()
-  }, { immediate: false })
-
-  // Initial fetch on mount
-  onMounted(() => {
-    fetchDashboardDataInternal()
-  })
+  )
 
   // Extract dashboard data from API response
   const dashboardData = computed(() => {
@@ -145,19 +126,15 @@ export function useDashboard(initialMonth?: Ref<string> | string) {
     return null
   })
 
-  // Refresh function for manual cache invalidation
-  const refreshDashboard = () => {
-    return fetchDashboardDataInternal()
-  }
-
   // Fetch data (either refresh current month or change month)
   const fetchDashboardData = async (newMonth?: string) => {
     if (newMonth) {
       selectedMonth.value = newMonth
-      // Watch will trigger refetch automatically
+      // Watch will trigger refetch automatically via useFetch
     }
     else {
-      return fetchDashboardDataInternal()
+      // Manual refresh of current month's data
+      return refreshDashboard()
     }
   }
 

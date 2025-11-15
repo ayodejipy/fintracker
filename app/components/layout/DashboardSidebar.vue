@@ -2,7 +2,30 @@
 import { useSidebar } from '~/composables/useSidebar'
 
 const route = useRoute()
+const colorMode = useColorMode()
 const { isCollapsed, isMobile, toggleSidebar, setMobile } = useSidebar()
+
+// Theme toggle handler
+const cycleTheme = () => {
+  const themes = ['light', 'dark', 'system']
+  const currentIndex = themes.indexOf(colorMode.preference)
+  const nextIndex = (currentIndex + 1) % themes.length
+  colorMode.preference = themes[nextIndex]
+}
+
+// Get current theme icon
+const themeIcon = computed(() => {
+  if (colorMode.preference === 'dark') return 'i-heroicons-moon'
+  if (colorMode.preference === 'light') return 'i-heroicons-sun'
+  return 'i-heroicons-computer-desktop'
+})
+
+// Get theme label
+const themeLabel = computed(() => {
+  if (colorMode.preference === 'dark') return 'Dark'
+  if (colorMode.preference === 'light') return 'Light'
+  return 'System'
+})
 
 interface MenuItem {
   name: string
@@ -26,18 +49,6 @@ const navigationItems = computed((): MenuItem[] => [
     icon: 'i-heroicons-rectangle-stack',
     path: '/transactions',
     active: route.path.startsWith('/transactions'),
-  },
-  {
-    name: 'Income',
-    icon: 'i-heroicons-arrow-trending-up',
-    path: '/income',
-    active: route.path === '/income',
-  },
-  {
-    name: 'Expenses',
-    icon: 'i-heroicons-arrow-trending-down',
-    path: '/expenses',
-    active: route.path === '/expenses',
   },
   {
     name: 'Budgets',
@@ -288,6 +299,36 @@ onUnmounted(() => {
           {{ item.name }}
         </div>
       </NuxtLink>
+
+      <!-- Theme Toggle -->
+      <button
+        class="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ease-out text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-50 dark:hover:from-gray-800 dark:hover:to-gray-800/50 hover:text-gray-900 dark:hover:text-white hover:scale-[1.01] hover:shadow-sm w-full"
+        :class="{
+          'justify-center': isCollapsed,
+        }"
+        @click="cycleTheme"
+      >
+        <!-- Icon with animated background -->
+        <div class="relative flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200 bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-200 dark:group-hover:bg-gray-700">
+          <UIcon
+            :name="themeIcon"
+            class="w-4 h-4 flex-shrink-0 transition-all duration-200 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white group-hover:scale-110"
+          />
+        </div>
+
+        <span v-if="!isCollapsed" class="flex-1 relative z-10 text-left">
+          Theme: {{ themeLabel }}
+        </span>
+
+        <!-- Tooltip for collapsed state -->
+        <div
+          v-if="isCollapsed"
+          class="absolute left-full ml-3 px-3 py-2 bg-gray-900 dark:bg-gray-800 text-white text-xs font-medium rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 -translate-x-1 transition-all duration-200 whitespace-nowrap z-50 shadow-xl border border-gray-700 dark:border-gray-700"
+        >
+          <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 rotate-45 bg-gray-900 dark:bg-gray-800 border-l border-b border-gray-700 dark:border-gray-700" />
+          Theme: {{ themeLabel }}
+        </div>
+      </button>
     </div>
   </div>
 </template>

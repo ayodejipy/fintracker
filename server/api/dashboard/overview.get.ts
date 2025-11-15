@@ -190,6 +190,8 @@ export default defineEventHandler(async (event) => {
         expenses,
         netIncome: income - expenses,
         cashFlow,
+        monthlyPayments: totalMonthlyPayments,
+        monthlySavingsContributions: totalMonthlyContributions,
       },
 
       // Financial overview

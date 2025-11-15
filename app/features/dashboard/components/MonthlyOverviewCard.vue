@@ -8,6 +8,8 @@ interface MonthlyData {
   expenses: number
   netIncome: number
   cashFlow: number
+  monthlyPayments?: number
+  monthlySavingsContributions?: number
 }
 
 interface Props {
@@ -314,14 +316,14 @@ const financialStatus = computed(() => {
       </div>
 
       <!-- Cash Flow -->
-      <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+      <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 space-y-3">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
               Available Cash Flow
             </p>
-            <p class="text-sm text-gray-600 dark:text-gray-300">
-              After all commitments (loans, savings)
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              After all expenses & planned commitments
             </p>
           </div>
           <div class="text-right">
@@ -331,6 +333,26 @@ const financialStatus = computed(() => {
             <p class="text-xs text-gray-500 dark:text-gray-400">
               {{ currentMonth.cashFlow >= 0 ? 'Available' : 'Shortfall' }}
             </p>
+          </div>
+        </div>
+
+        <!-- Cash Flow Breakdown -->
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-3 space-y-2 text-xs">
+          <div class="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Income</span>
+            <span class="text-green-600 dark:text-green-400 font-medium">+{{ formatCurrency(currentMonth.income) }}</span>
+          </div>
+          <div class="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Expenses</span>
+            <span class="text-red-600 dark:text-red-400 font-medium">-{{ formatCurrency(currentMonth.expenses) }}</span>
+          </div>
+          <div v-if="currentMonth.monthlyPayments && currentMonth.monthlyPayments > 0" class="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Loan Payments</span>
+            <span class="text-red-600 dark:text-red-400 font-medium">-{{ formatCurrency(currentMonth.monthlyPayments) }}</span>
+          </div>
+          <div v-if="currentMonth.monthlySavingsContributions && currentMonth.monthlySavingsContributions > 0" class="flex justify-between text-gray-600 dark:text-gray-300">
+            <span>Savings Goals</span>
+            <span class="text-red-600 dark:text-red-400 font-medium">-{{ formatCurrency(currentMonth.monthlySavingsContributions) }}</span>
           </div>
         </div>
       </div>
