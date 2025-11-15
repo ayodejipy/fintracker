@@ -1,9 +1,15 @@
 export default defineNuxtRouteMiddleware(async (to) => {
+  const supabase = useSupabaseClient()
   const { isAuthenticated, refreshUser } = useAuth()
   const route = useRoute()
 
-  // Wait for auth state to be checked
-  await refreshUser()
+  // Check Supabase session directly (no API call needed)
+  const { data: { session }, error } = await supabase.auth.getSession()
+
+  // Only refresh user data if there's an active session
+  if (session?.access_token && !error) {
+    await refreshUser()
+  }
 
   // If authenticated and trying to access guest-only routes (login/register)
   if (isAuthenticated.value) {

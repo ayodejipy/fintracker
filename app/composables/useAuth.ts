@@ -23,6 +23,7 @@ export function useAuth() {
   const { data: user, refresh: refreshUser } = useFetch<UserSession | null>('/api/auth/me', {
     default: () => null,
     server: false,
+    immediate: false, // Don't auto-fetch on component mount
     async headers() {
       return await getAuthHeaders()
     },

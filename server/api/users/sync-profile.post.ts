@@ -1,4 +1,5 @@
 import { prisma as db } from '../../../app/utils/database'
+import { getUserSession } from '../../utils/auth'
 
 interface SyncProfileRequest {
   userId: string
@@ -11,6 +12,16 @@ interface SyncProfileRequest {
 
 export default defineEventHandler(async (event) => {
   try {
+    // Require authentication before allowing profile sync
+    const session = await getUserSession(event)
+    if (!session) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Unauthorized',
+        message: 'You must be authenticated to sync your profile',
+      })
+    }
+
     // Get the user from the request
     const body = await readBody<SyncProfileRequest>(event)
     console.log('📝 sync-profile request:', {

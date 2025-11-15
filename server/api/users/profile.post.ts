@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { getUserSession } from '../../utils/auth'
 
 const prisma = new PrismaClient()
 
@@ -8,6 +9,16 @@ const prisma = new PrismaClient()
  */
 export default defineEventHandler(async (event) => {
   try {
+    // Require authentication before allowing profile creation
+    const session = await getUserSession(event)
+    if (!session) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Unauthorized',
+        message: 'You must be authenticated to create a profile',
+      })
+    }
+
     const body = await readBody(event)
 
     // Validate required fields
