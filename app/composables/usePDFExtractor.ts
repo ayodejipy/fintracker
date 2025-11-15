@@ -1,19 +1,19 @@
-import { handleApiError } from '~/utils/errorHandler'
+import { PDFParse } from 'pdf-parse'
 
 /**
- * Composable for server-side PDF text extraction
- * Sends PDF file to server endpoint for extraction
- * This avoids browser compatibility issues with canvas and DOM APIs
+ * Composable for client-side PDF text extraction using pdf-parse
+ * PDF extraction runs entirely on the client
+ * Only extracted text is sent to server for LLM processing
  */
 export function usePDFExtractor() {
   const extracting = ref(false)
   const extractionError = ref<string | null>(null)
 
   /**
-   * Extract text from a PDF file
+   * Extract text from a PDF file on the client-side
    * @param file - The PDF file to extract text from
    * @param password - Optional password for encrypted PDFs
-   * @returns Extracted text or null if extraction fails
+   * @returns Extracted text or error
    */
   async function extractTextFromPDF(
     file: File,
@@ -23,31 +23,23 @@ export function usePDFExtractor() {
     extractionError.value = null
 
     try {
-      // Create form data with the PDF file
-      const formData = new FormData()
-      formData.append('file', file)
+      // Configure the worker for pdf-parse in browser environment
+      PDFParse.setWorker('https://cdn.jsdelivr.net/npm/pdf-parse@latest/dist/pdf-parse/web/pdf.worker.mjs')
+
+      // Convert File to Uint8Array for pdf-parse
+      const arrayBuffer = await file.arrayBuffer()
+      const buffer = new Uint8Array(arrayBuffer)
+
+      const options: { data: Uint8Array | ArrayBuffer, password?: string } = { data: buffer }
 
       if (password) {
-        formData.append('password', password)
+        options.password = password
       }
 
-      // Send to server for extraction
-      const response = await $fetch<{
-        success: boolean
-        text?: string
-        message: string
-      }>('/api/statements/extract', {
-        method: 'POST',
-        body: formData,
-      })
+      const parser = new PDFParse(options)
+      const result = await parser.getText()
 
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to extract text from PDF')
-      }
-
-      const extractedText = response.text
-
-      if (!extractedText || extractedText.trim().length === 0) {
+      if (!result.text || result.text.trim().length === 0) {
         return {
           success: false,
           error: 'No text could be extracted from the PDF. It may be an image-based PDF.',
@@ -56,19 +48,34 @@ export function usePDFExtractor() {
 
       return {
         success: true,
-        text: extractedText,
+        text: result.text,
       }
     }
     catch (error: any) {
-      // Use the standardized error handler
-      const errorResult = handleApiError(error, 'extract text from PDF')
+      const errorMsg = error.message || ''
+      const isPasswordError = errorMsg.includes('password') || errorMsg.includes('encrypted') || errorMsg.includes('No password given')
+      const isIncorrectPassword = password && (errorMsg.includes('incorrect') || errorMsg.includes('invalid') || errorMsg.includes('wrong'))
 
-      extractionError.value = errorResult.error
+      if (isPasswordError || isIncorrectPassword) {
+        const errorMessage = isIncorrectPassword
+          ? 'Incorrect password. Please try again.'
+          : 'This PDF is password protected. Please provide the password.'
+
+        extractionError.value = errorMessage
+
+        return {
+          success: false,
+          error: errorMessage,
+          requiresPassword: true,
+        }
+      }
+
+      const errorMessage = errorMsg || 'Failed to extract text from PDF'
+      extractionError.value = errorMessage
 
       return {
         success: false,
-        error: errorResult.error,
-        requiresPassword: errorResult.requiresPassword,
+        error: errorMessage,
       }
     }
     finally {

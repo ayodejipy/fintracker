@@ -2,10 +2,46 @@ import type { BankStatementParseResult } from '../../../app/types'
 import { readMultipartFormData } from 'h3'
 import { getCategoriesForLLMPrompt } from '../../utils/categoryMapper'
 import { parseBankStatementWithLLM } from '../../utils/llmParser'
-import { validateBankStatementPDF } from '../../utils/pdfParser'
 import { cleanAndNormalizeBankStatement } from '../../utils/textCleaning'
 import { categorizeTransactions } from '../../utils/transactionCategorizerNew'
 import { getValidationSummary, validateTransactions } from '../../utils/transactionValidator'
+
+/**
+ * Validate if text looks like a bank statement
+ */
+function validateBankStatementText(text: string): { valid: boolean, reason?: string } {
+  const lowerText = text.toLowerCase()
+
+  // Check for common bank statement indicators
+  const hasTransactionKeywords = (
+    lowerText.includes('transaction')
+    || lowerText.includes('transaction details')
+    || lowerText.includes('debit')
+    || lowerText.includes('credit')
+    || lowerText.includes('balance')
+    || lowerText.includes('withdrawal')
+    || lowerText.includes('deposit')
+    || lowerText.includes('remarks')
+  )
+
+  const hasBankKeywords = (
+    lowerText.includes('bank')
+    || lowerText.includes('statement')
+    || lowerText.includes('account')
+  )
+
+  const hasAmountPatterns = /\d{1,3}(?:,\d{3})*\.\d{2}/.test(text)
+
+  if (!hasTransactionKeywords && !hasBankKeywords) {
+    return { valid: false, reason: 'Document does not appear to be a bank statement' }
+  }
+
+  if (!hasAmountPatterns) {
+    return { valid: false, reason: 'No transaction data found in document' }
+  }
+
+  return { valid: true }
+}
 
 /**
  * Upload and parse bank statement PDF
@@ -45,7 +81,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Step 2: Validate it's actually a bank statement
-    const validation = validateBankStatementPDF(pdfText)
+    const validation = validateBankStatementText(pdfText)
 
     if (!validation.valid) {
       throw createError({
