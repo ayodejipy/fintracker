@@ -1,76 +1,35 @@
 import { serverSupabaseUser } from '#supabase/server'
 import { prisma } from '../../../app/utils/database'
-import { getUserSession } from '../../../server/utils/auth'
 
 export default defineEventHandler(async (event) => {
   try {
-    // First try to get Supabase user from the module (handles OAuth and Supabase auth)
+    console.log('[/api/auth/me] Starting session check...')
+
+    // Get Supabase user from the server context
+    // This works with both Supabase Auth tokens and OAuth tokens
     const supabaseUser = await serverSupabaseUser(event)
+    console.log('[/api/auth/me] Supabase user present:', !!supabaseUser)
 
-    if (supabaseUser) {
-      // JWT claims use 'sub' for user ID, not 'id'
-      const userId = (supabaseUser.sub || supabaseUser.id) as string
-
-      if (!userId) {
-        return null
-      }
-
-      // Fetch full user data from database
-      const dbUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          monthlyIncome: true,
-          currency: true,
-          oauthProvider: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      })
-
-      if (!dbUser) {
-        // If Supabase user exists but not in database, return minimal info
-        // This allows the user to proceed while sync happens in background
-        return {
-          user: {
-            id: userId,
-            email: supabaseUser.email || '',
-            name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || 'User',
-            monthlyIncome: 0,
-            currency: 'NGN',
-            oauthProvider: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        }
-      }
-
-      return {
-        user: {
-          id: dbUser.id,
-          email: dbUser.email,
-          name: dbUser.name,
-          monthlyIncome: Number(dbUser.monthlyIncome),
-          currency: dbUser.currency,
-          oauthProvider: dbUser.oauthProvider,
-          createdAt: dbUser.createdAt,
-          updatedAt: dbUser.updatedAt,
-        },
-      }
-    }
-
-    // Fall back to custom JWT session (legacy support for email/password auth)
-    const session = await getUserSession(event)
-
-    if (!session?.user?.id) {
+    if (!supabaseUser) {
+      console.log('[/api/auth/me] No Supabase user found, returning null')
       return null
     }
 
-    // Fetch full user data from database for JWT users too
+    // Extract user ID from Supabase user object
+    // JWT tokens use 'sub' for user ID, but we also check 'id' for flexibility
+    const supabaseUserRecord = supabaseUser as Record<string, unknown> | undefined
+    const userId = (supabaseUserRecord?.sub as string) || (supabaseUserRecord?.id as string)
+
+    if (!userId) {
+      console.warn('[/api/auth/me] No userId found in Supabase user object')
+      return null
+    }
+
+    console.log('[/api/auth/me] Found userId:', userId)
+
+    // Fetch full user data from database
     const dbUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: {
         id: true,
         email: true,
@@ -84,8 +43,25 @@ export default defineEventHandler(async (event) => {
     })
 
     if (!dbUser) {
-      return null
+      console.warn('[/api/auth/me] Supabase user not found in database, returning minimal info')
+      // If Supabase user exists but not in database, return minimal info
+      // This allows the user to proceed while sync happens in background
+      const userMetadata = supabaseUserRecord?.user_metadata as Record<string, string> | undefined
+      return {
+        user: {
+          id: userId,
+          email: (supabaseUserRecord?.email as string) || '',
+          name: userMetadata?.name || userMetadata?.full_name || 'User',
+          monthlyIncome: 0,
+          currency: 'NGN',
+          oauthProvider: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      }
     }
+
+    console.log('[/api/auth/me] User found in database:', dbUser.email)
 
     return {
       user: {
@@ -101,7 +77,8 @@ export default defineEventHandler(async (event) => {
     }
   }
   catch (error) {
-    console.error('Session check error:', error)
+    console.error('[/api/auth/me] Unexpected error:', error instanceof Error ? error.message : String(error))
+    console.error('[/api/auth/me] Full error:', error)
     return null
   }
 })

@@ -1,82 +1,49 @@
-import type { AuthResponse, UserSession } from '@/types'
-import type { LoginInput, RegisterInput } from '@/utils/auth'
+import type { UserSession } from '@/types'
 
+/**
+ * Composable for Supabase-based authentication
+ * Handles fetching user session from /api/auth/me
+ * The auth interceptor automatically adds Supabase tokens to all requests
+ */
 export function useAuth() {
   const supabase = useSupabaseClient()
 
-  // Helper function to get auth headers for API requests
-  const getAuthHeaders = async (): Promise<Record<string, string>> => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      if (error || !session?.access_token) {
-        return {}
-      }
-      return {
-        Authorization: `Bearer ${session.access_token}`,
-      }
-    }
-    catch {
-      return {}
-    }
-  }
-
+  // Fetch user session from backend (uses Supabase auth)
+  // Auth interceptor plugin automatically adds Authorization header with Supabase token
   const { data: user, refresh: refreshUser } = useFetch<UserSession | null>('/api/auth/me', {
     default: () => null,
     server: false,
     immediate: false, // Don't auto-fetch on component mount
-    async headers() {
-      return await getAuthHeaders()
-    },
   })
 
-  const login = async (credentials: LoginInput): Promise<AuthResponse> => {
-    const response = await $fetch<AuthResponse>('/api/auth/login', {
-      method: 'POST',
-      body: credentials,
-    })
-
-    await refreshUser()
-    return response
-  }
-
-  const register = async (userData: RegisterInput): Promise<AuthResponse> => {
+  /**
+   * Logout user from Supabase
+   * This clears the Supabase session and redirects to login
+   */
+  const logout = async (): Promise<void> => {
     try {
-      const response = await $fetch<AuthResponse>('/api/auth/register', {
-        method: 'POST',
-        body: userData,
-      })
+      // Sign out from Supabase (clears all tokens)
+      await supabase.auth.signOut()
 
-      // Only refresh user data after successful registration
-      if (response) {
-        await refreshUser()
-      }
+      // Clear cached user data
+      user.value = null
 
-      return response
+      // Redirect to login
+      await navigateTo('/auth/login')
     }
     catch (error) {
-      // Don't refresh user data on error to avoid auth state changes
+      console.error('Logout error:', error)
       throw error
     }
   }
 
-  const logout = async (): Promise<void> => {
-    await $fetch('/api/auth/logout', {
-      method: 'POST',
-    })
-
-    await refreshUser()
-    await navigateTo('/auth/login')
-  }
-
+  // Computed property to check if user is authenticated
   const isAuthenticated = computed(() => !!user.value?.user)
 
   return {
     user: readonly(user),
-    login,
-    register,
-    logout,
     isAuthenticated,
     refreshUser,
-    getAuthHeaders,
+    logout,
   }
 }
