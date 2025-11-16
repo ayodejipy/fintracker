@@ -1,3 +1,4 @@
+import { serverSupabaseUser } from '#supabase/server'
 import { prisma as db } from '../../../app/utils/database'
 import { getUserSession } from '../../utils/auth'
 
@@ -12,9 +13,39 @@ interface SyncProfileRequest {
 
 export default defineEventHandler(async (event) => {
   try {
-    // Require authentication before allowing profile sync
-    const session = await getUserSession(event)
-    if (!session) {
+    // Try to authenticate the user
+    // This endpoint can be called:
+    // 1. From OAuth callback (user has Supabase token but not yet in DB)
+    // 2. From regular authenticated requests (user has JWT cookie)
+
+    let authenticatedUserId: string | null = null
+
+    // First try to get Supabase user (OAuth flow)
+    try {
+      const supabaseUser = await serverSupabaseUser(event)
+      if (supabaseUser) {
+        const userId = (supabaseUser as any)?.sub || (supabaseUser as any)?.id
+        if (userId) {
+          authenticatedUserId = userId
+          console.warn('✅ Authenticated via Supabase token:', userId)
+        }
+      }
+    }
+    catch (error) {
+      console.warn('⚠️ Supabase auth failed, trying JWT fallback...')
+    }
+
+    // Fallback to JWT session if Supabase auth didn't work
+    if (!authenticatedUserId) {
+      const session = await getUserSession(event)
+      if (session?.user?.id) {
+        authenticatedUserId = session.user.id
+        console.warn('✅ Authenticated via JWT cookie:', authenticatedUserId)
+      }
+    }
+
+    // If still no auth, reject the request
+    if (!authenticatedUserId) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized',

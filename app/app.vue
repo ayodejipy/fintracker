@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { refreshUser } = useAuth()
+const { refreshUser, isAuthenticated } = useAuth()
 const route = useRoute()
 
 // Track if we're checking auth
@@ -7,7 +7,9 @@ const isCheckingAuth = ref(true)
 
 onMounted(async () => {
   // Ensure auth is fully loaded before showing content
-  await refreshUser()
+  if (isAuthenticated) {
+    await refreshUser()
+  }
   // Small delay to ensure middleware has run
   await nextTick()
   isCheckingAuth.value = false

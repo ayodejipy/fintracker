@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const { completeIncomeStep, skipOnboarding } = useOnboarding()
+const { completeIncomeStep, skipOnboarding, refreshUserState } = useOnboarding()
+const toast = useToast()
 
 const isLoading = ref(false)
 const isSkipping = ref(false)
@@ -28,52 +29,115 @@ const isFormValid = computed(() => {
 })
 
 // Format income input to ensure valid number
-const formatIncome = (value: string) => {
+function formatIncome(value: string) {
   // Remove non-numeric characters except decimal point
   return value.replace(/[^\d.]/g, '')
 }
 
-const handleIncomeInput = (event: Event) => {
+function handleIncomeInput(event: Event) {
   const input = event.target as HTMLInputElement
   input.value = formatIncome(input.value)
   formData.monthlyIncome = input.value
 }
 
-const handleSubmit = async () => {
-  if (!isFormValid.value) return
+async function handleSubmit() {
+  if (!isFormValid.value) { return }
 
   isLoading.value = true
   error.value = null
 
   try {
     const monthlyIncome = Number(formData.monthlyIncome)
-    await completeIncomeStep(monthlyIncome, formData.currency)
+    console.warn('[IncomeCollectionForm] Starting income submission...', { monthlyIncome, currency: formData.currency })
 
-    // Success - redirect to dashboard
-    await navigateTo('/dashboard')
+    const result = await completeIncomeStep(monthlyIncome, formData.currency)
+    console.warn('[IncomeCollectionForm] Income submission response:', result)
+
+    if (result.success) {
+      // Show success toast
+      toast.add({
+        title: 'Success',
+        description: 'Your income has been saved successfully',
+        color: 'success',
+      })
+
+      console.warn('[IncomeCollectionForm] Refreshing user state from server...')
+      await refreshUserState()
+
+      console.warn('[IncomeCollectionForm] Waiting before redirect to dashboard...')
+      // Redirect to dashboard after a brief delay to let toast show
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      console.warn('[IncomeCollectionForm] Redirecting to /dashboard...')
+      await navigateTo('/dashboard')
+      console.warn('[IncomeCollectionForm] Redirect completed')
+    }
+    else {
+      const errorMsg = result.message || 'Failed to save income information'
+      error.value = errorMsg
+      console.error('[IncomeCollectionForm] API returned success: false', { message: errorMsg })
+      toast.add({
+        title: 'Error',
+        description: errorMsg,
+        color: 'error',
+      })
+    }
   }
   catch (err) {
-    console.error('Failed to complete onboarding:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to save income information'
+    const errorMsg = err instanceof Error ? err.message : 'Failed to save income information'
+    console.error('[IncomeCollectionForm] Error during submission:', err)
+    error.value = errorMsg
+
+    // Show error toast
+    toast.add({
+      title: 'Error',
+      description: errorMsg,
+      color: 'error',
+    })
   }
   finally {
     isLoading.value = false
   }
 }
 
-const handleSkip = async () => {
+async function handleSkip() {
   isSkipping.value = true
   error.value = null
 
   try {
-    await skipOnboarding()
+    console.warn('[IncomeCollectionForm] Starting skip onboarding...')
+    const result = await skipOnboarding()
+    console.warn('[IncomeCollectionForm] Skip onboarding response:', result)
 
-    // Success - redirect to dashboard
+    // Show success toast
+    toast.add({
+      title: 'Success',
+      description: 'Onboarding skipped. You can update your income later in settings.',
+      color: 'success',
+    })
+
+    console.warn('[IncomeCollectionForm] Refreshing user state from server...')
+    await refreshUserState()
+
+    // Redirect to dashboard after a brief delay
+    console.warn('[IncomeCollectionForm] Waiting before redirect to dashboard...')
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    console.warn('[IncomeCollectionForm] Redirecting to /dashboard...')
     await navigateTo('/dashboard')
+    console.warn('[IncomeCollectionForm] Redirect completed')
   }
   catch (err) {
-    console.error('Failed to skip onboarding:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to skip onboarding'
+    const errorMsg = err instanceof Error ? err.message : 'Failed to skip onboarding'
+    console.error('[IncomeCollectionForm] Error during skip:', err)
+    error.value = errorMsg
+
+    // Show error toast
+    toast.add({
+      title: 'Error',
+      description: errorMsg,
+      color: 'error',
+    })
   }
   finally {
     isSkipping.value = false
@@ -104,7 +168,7 @@ const handleSkip = async () => {
     </div>
 
     <!-- Form -->
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <form class="space-y-6" @submit.prevent="handleSubmit">
       <!-- Monthly Income Input -->
       <div>
         <label
@@ -123,9 +187,9 @@ const handleSkip = async () => {
             type="text"
             inputmode="decimal"
             placeholder="0.00"
-            @input="handleIncomeInput"
             class="w-full pl-8 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-          />
+            @input="handleIncomeInput"
+          >
         </div>
         <p v-if="formData.monthlyIncome" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ formData.currency }} {{ parseFloat(formData.monthlyIncome).toLocaleString() }}
@@ -177,9 +241,9 @@ const handleSkip = async () => {
         <!-- Skip Button -->
         <button
           type="button"
-          @click="handleSkip"
           :disabled="isLoading || isSkipping"
           class="w-full py-2 px-4 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-300 dark:border-gray-600 transition-colors disabled:cursor-not-allowed"
+          @click="handleSkip"
         >
           <span v-if="isSkipping" class="flex items-center justify-center gap-2">
             <Icon name="heroicons:arrow-path" class="w-4 h-4 animate-spin" />

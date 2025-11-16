@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { serverSupabaseUser } from '#supabase/server'
 import { getUserSession } from '../../utils/auth'
 
 const prisma = new PrismaClient()
@@ -6,12 +7,39 @@ const prisma = new PrismaClient()
 /**
  * Create user profile in database after Supabase auth signup
  * POST /api/users/profile
+ * Supports both Supabase tokens (signup flow) and JWT cookies (regular auth)
  */
 export default defineEventHandler(async (event) => {
   try {
-    // Require authentication before allowing profile creation
-    const session = await getUserSession(event)
-    if (!session) {
+    // Authenticate user - support both Supabase and JWT
+    let authenticatedUserId: string | null = null
+
+    // Try Supabase first (signup/OAuth flow)
+    try {
+      const supabaseUser = await serverSupabaseUser(event)
+      if (supabaseUser) {
+        const userId = (supabaseUser as any)?.sub || (supabaseUser as any)?.id
+        if (userId) {
+          authenticatedUserId = userId
+          console.warn('✅ Profile creation: Authenticated via Supabase token')
+        }
+      }
+    }
+    catch (error) {
+      console.warn('⚠️ Profile creation: Supabase auth failed, trying JWT...')
+    }
+
+    // Fallback to JWT session
+    if (!authenticatedUserId) {
+      const session = await getUserSession(event)
+      if (session?.user?.id) {
+        authenticatedUserId = session.user.id
+        console.warn('✅ Profile creation: Authenticated via JWT')
+      }
+    }
+
+    // If still no auth, reject the request
+    if (!authenticatedUserId) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized',

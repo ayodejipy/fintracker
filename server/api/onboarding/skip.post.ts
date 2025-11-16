@@ -1,5 +1,8 @@
-import { getUserSession } from '~/server/utils/auth'
-import { prisma } from '~/utils/database'
+import { PrismaClient } from '@prisma/client'
+import { serverSupabaseUser } from '#supabase/server'
+import { getUserSession } from '../../utils/auth'
+
+const prisma = new PrismaClient()
 
 const ONBOARDING_STATUS = {
   NOT_STARTED: 'NOT_STARTED',
@@ -9,16 +12,38 @@ const ONBOARDING_STATUS = {
 
 export default defineEventHandler(async (event) => {
   try {
-    // Authenticate user
-    const session = await getUserSession(event)
-    if (!session || !session.user?.id) {
+    // Authenticate user - support both Supabase and JWT
+    let userId: string | null = null
+
+    // Try Supabase first (OAuth flow)
+    try {
+      const supabaseUser = await serverSupabaseUser(event)
+      if (supabaseUser) {
+        userId = (supabaseUser as any)?.sub || (supabaseUser as any)?.id
+        if (userId) {
+          console.warn('✅ Skip onboarding: Authenticated via Supabase token')
+        }
+      }
+    }
+    catch (error) {
+      console.warn('⚠️ Skip onboarding: Supabase auth failed, trying JWT...')
+    }
+
+    // Fallback to JWT session
+    if (!userId) {
+      const session = await getUserSession(event)
+      userId = session?.user?.id || null
+      if (userId) {
+        console.warn('✅ Skip onboarding: Authenticated via JWT')
+      }
+    }
+
+    if (!userId) {
       throw createError({
         statusCode: 401,
         statusMessage: 'Unauthorized',
       })
     }
-
-    const userId = session.user.id
 
     // Mark onboarding as completed without changing income/currency
     const updatedUser = await prisma.user.update({

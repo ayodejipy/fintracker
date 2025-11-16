@@ -46,6 +46,7 @@ export function useOnboarding() {
    */
   const completeIncomeStep = async (monthlyIncome: number, currency: string): Promise<OnboardingResponse> => {
     try {
+      console.warn('[useOnboarding] Calling /api/onboarding/income API...', { monthlyIncome, currency })
       const response = await $fetch<OnboardingResponse>('/api/onboarding/income', {
         method: 'POST',
         body: {
@@ -54,18 +55,16 @@ export function useOnboarding() {
         },
       })
 
-      // Update local user state
-      if (response.user && authUser.value?.user) {
-        authUser.value.user.monthlyIncome = response.user.monthlyIncome
-        authUser.value.user.currency = response.user.currency
-        authUser.value.user.onboardingStatus = response.user.onboardingStatus
-        authUser.value.user.onboardingCompletedAt = response.user.onboardingCompletedAt
+      console.warn('[useOnboarding] API response received:', { success: response.success })
+
+      if (response.success) {
+        console.warn('[useOnboarding] Income step completed successfully, user should refresh state next')
       }
 
       return response
     }
     catch (error) {
-      console.error('Error completing income step:', error)
+      console.error('[useOnboarding] Error completing income step:', error)
       throw error
     }
   }
@@ -76,22 +75,33 @@ export function useOnboarding() {
    */
   const skipOnboarding = async (): Promise<OnboardingResponse> => {
     try {
+      console.warn('[useOnboarding] Calling /api/onboarding/skip API...')
       const response = await $fetch<OnboardingResponse>('/api/onboarding/skip', {
         method: 'POST',
       })
 
-      // Update local user state
-      if (response.user && authUser.value?.user) {
-        authUser.value.user.onboardingStatus = response.user.onboardingStatus
-        authUser.value.user.onboardingCompletedAt = response.user.onboardingCompletedAt
+      console.warn('[useOnboarding] Skip API response received:', { success: response.success })
+
+      if (response.success) {
+        console.warn('[useOnboarding] Skip completed successfully, user should refresh state next')
       }
 
       return response
     }
     catch (error) {
-      console.error('Error skipping onboarding:', error)
+      console.error('[useOnboarding] Error skipping onboarding:', error)
       throw error
     }
+  }
+
+  /**
+   * Refresh user data from server after onboarding changes
+   */
+  const refreshUserState = async () => {
+    console.warn('[useOnboarding] Refreshing user state from server...')
+    const { refreshUser } = useAuth()
+    await refreshUser()
+    console.warn('[useOnboarding] User state refreshed')
   }
 
   /**
@@ -99,10 +109,11 @@ export function useOnboarding() {
    */
   const redirectIfNeeded = async () => {
     // Only redirect on client side and if not already on onboarding page
-    if (process.server) return
-
-    if (needsOnboarding.value && !router.currentRoute.value.path.startsWith('/onboarding')) {
-      await router.push('/onboarding')
+    if (!process.server) {
+      if (needsOnboarding.value && !router.currentRoute.value.path.startsWith('/onboarding')) {
+        console.warn('[useOnboarding] Redirecting to onboarding page')
+        await router.push('/onboarding')
+      }
     }
   }
 
@@ -111,6 +122,7 @@ export function useOnboarding() {
     needsIncomeCollection,
     completeIncomeStep,
     skipOnboarding,
+    refreshUserState,
     redirectIfNeeded,
   }
 }
