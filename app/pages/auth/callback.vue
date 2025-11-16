@@ -67,9 +67,25 @@ onMounted(async () => {
         // Don't fail - Supabase token should still work
       }
 
-      console.warn('🔐 OAuth callback: Profile synced, redirecting to dashboard')
-      // Redirect to dashboard
-      await router.push('/dashboard')
+      console.warn('🔐 OAuth callback: Profile synced, redirecting based on onboarding status')
+
+      // Check if user needs onboarding
+      try {
+        const authMe = await $fetch<{ user: { onboardingStatus: string } }>('/api/auth/me')
+        if (authMe?.user?.onboardingStatus !== 'COMPLETED') {
+          console.warn('🔐 OAuth callback: User needs onboarding, redirecting to onboarding page')
+          await router.push('/onboarding')
+        }
+        else {
+          console.warn('🔐 OAuth callback: User already completed onboarding, redirecting to dashboard')
+          await router.push('/dashboard')
+        }
+      }
+      catch (err) {
+        console.warn('Failed to check onboarding status, redirecting to dashboard:', err)
+        // Default to dashboard if we can't check status
+        await router.push('/dashboard')
+      }
     }
     else {
       error.value = 'Authentication failed. Please try again.'

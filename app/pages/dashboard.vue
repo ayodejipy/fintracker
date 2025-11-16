@@ -22,7 +22,7 @@ const { fetchDashboardData, loading: dashboardLoading, dashboardData, error, cha
 
 // Meta
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'onboarding'],
   layout: 'dashboard',
 })
 

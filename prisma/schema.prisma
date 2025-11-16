@@ -22,6 +22,8 @@ model User {
   avatar                  String?
   oauthProvider           String?                  // null = email/password user, "google" = OAuth user
   oauthProviderUserId     String?
+  onboardingStatus        String                   @default("NOT_STARTED")
+  onboardingCompletedAt   DateTime?
   budgets                 Budget[]
   categories              Category[]
   loans                   Loan[]

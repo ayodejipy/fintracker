@@ -319,6 +319,8 @@ export interface AuthUser {
   monthlyIncome: number
   currency: string
   oauthProvider?: string | null
+  onboardingStatus?: string
+  onboardingCompletedAt?: Date | null
   createdAt: Date
   updatedAt: Date
 }
